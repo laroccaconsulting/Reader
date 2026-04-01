@@ -5,6 +5,17 @@
 'use strict';
 
 /* =====================================================
+   SETTINGS
+   ===================================================== */
+const DEFAULTS = {
+  theme: 'light',
+  fontSize: 18,
+  fontFamily: 'serif',
+  lineHeight: 1.75,
+  margin: 'medium',
+};
+
+/* =====================================================
    STATE
    ===================================================== */
 const state = {
@@ -19,17 +30,6 @@ const state = {
   downloading: new Set(),    // bookIds being fetched right now
   dlCount: 0,                // books downloaded so far (for progress bar)
   settings: loadSettings(),
-};
-
-/* =====================================================
-   SETTINGS
-   ===================================================== */
-const DEFAULTS = {
-  theme: 'light',
-  fontSize: 18,
-  fontFamily: 'serif',
-  lineHeight: 1.75,
-  margin: 'medium',
 };
 
 function loadSettings() {
