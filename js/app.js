@@ -85,6 +85,7 @@ async function initDB() {
 }
 
 function dbGet(store, key) {
+  if (!idb) return Promise.resolve(undefined);
   return new Promise((res, rej) => {
     const tx  = idb.transaction(store, 'readonly');
     const req = tx.objectStore(store).get(key);
@@ -94,6 +95,7 @@ function dbGet(store, key) {
 }
 
 function dbPut(store, value) {
+  if (!idb) return Promise.resolve();
   return new Promise((res, rej) => {
     const tx  = idb.transaction(store, 'readwrite');
     const req = tx.objectStore(store).put(value);
@@ -103,6 +105,7 @@ function dbPut(store, value) {
 }
 
 function dbGetAllKeys(store) {
+  if (!idb) return Promise.resolve([]);
   return new Promise((res, rej) => {
     const tx  = idb.transaction(store, 'readonly');
     const req = tx.objectStore(store).getAllKeys();
@@ -112,6 +115,7 @@ function dbGetAllKeys(store) {
 }
 
 function dbDelete(store, key) {
+  if (!idb) return Promise.resolve();
   return new Promise((res, rej) => {
     const tx  = idb.transaction(store, 'readwrite');
     const req = tx.objectStore(store).delete(key);
@@ -892,20 +896,24 @@ function setupSwipeGesture() {
    INITIALISE
    ===================================================== */
 async function init() {
-  await initDB();
+  // IndexedDB is unavailable in Safari Private Browsing — degrade gracefully
+  try {
+    await initDB();
 
-  // Load cached book IDs
-  const cachedIds = await dbGetAllKeys('books');
-  cachedIds.forEach(id => state.downloaded.add(id));
+    const cachedIds = await dbGetAllKeys('books');
+    cachedIds.forEach(id => state.downloaded.add(id));
 
-  // Load all progress records
-  const progressKeys = await dbGetAllKeys('progress');
-  await Promise.all(progressKeys.map(async key => {
-    const rec = await dbGet('progress', key);
-    if (rec) state.progress[rec.id] = rec;
-  }));
+    const progressKeys = await dbGetAllKeys('progress');
+    await Promise.all(progressKeys.map(async key => {
+      const rec = await dbGet('progress', key);
+      if (rec) state.progress[rec.id] = rec;
+    }));
+  } catch (e) {
+    console.warn('IndexedDB unavailable, running in memory-only mode:', e);
+    idb = null; // flag so downstream DB calls are skipped
+  }
 
-  // Build UI
+  // Build UI — always runs, even without DB
   buildGenreFilters();
   renderLibrary();
   applySettings();
