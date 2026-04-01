@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8B7EC8"/>
+      <stop offset="100%" stop-color="#5B4FA8"/>
+    </linearGradient>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#e8e0f8" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Book shadow -->
+  <rect x="136" y="148" width="244" height="228" rx="8" fill="#3d3080" opacity="0.3"/>
+  <!-- Left page -->
+  <rect x="128" y="136" width="122" height="224" rx="6" fill="url(#pg)"/>
+  <!-- Right page -->
+  <rect x="258" y="136" width="122" height="224" rx="6" fill="url(#pg)" opacity="0.9"/>
+  <!-- Spine -->
+  <rect x="246" y="136" width="16" height="224" rx="3" fill="#5B4FA8"/>
+  <!-- Lines left page -->
+  <rect x="148" y="176" width="80" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="148" y="196" width="88" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="148" y="216" width="72" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="148" y="236" width="84" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="148" y="256" width="76" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="148" y="276" width="88" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="148" y="296" width="60" height="6" rx="3" fill="#c4b8f0"/>
+  <!-- Lines right page -->
+  <rect x="274" y="176" width="80" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="274" y="196" width="72" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="274" y="216" width="88" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="274" y="236" width="76" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="274" y="256" width="84" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="274" y="276" width="68" height="6" rx="3" fill="#c4b8f0"/>
+  <rect x="274" y="296" width="80" height="6" rx="3" fill="#c4b8f0"/>
+</svg>

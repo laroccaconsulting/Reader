@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- PWA / iOS -->
+  <meta name="theme-color" content="#FAFAF8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Reader">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <title>Reader — Classic Books</title>
+  <meta name="description" content="A beautiful offline ereader with 50 classic books from Project Gutenberg.">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ================================================
+       LIBRARY VIEW
+       ============================================== -->
+  <div id="library-view" class="view">
+
+    <div class="library-header">
+      <div class="library-title-row">
+        <h1>Library</h1>
+        <div class="header-actions">
+          <button class="icon-btn" id="download-all-btn" title="Download all books for offline reading" aria-label="Download all books">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+              <path d="M12 12v6m0 0l-2-2m2 2l2-2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input type="search" id="search-input" placeholder="Search books or authors…" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+
+      <!-- Genre filters -->
+      <div class="genre-filters" id="genre-filters" role="group" aria-label="Filter by genre"></div>
+    </div>
+
+    <!-- Download progress bar -->
+    <div class="download-bar" id="download-bar" role="status" aria-live="polite">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 2v10m0 0l-3-3m3 3l3-3M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>
+      </svg>
+      <div class="download-bar-fill">
+        <div class="download-bar-fill-inner" id="dl-fill" style="width:0%"></div>
+      </div>
+      <span id="dl-label">Downloading library…</span>
+    </div>
+
+    <!-- Book grid -->
+    <div id="book-grid" role="list" aria-label="Books"></div>
+
+  </div><!-- /library-view -->
+
+
+  <!-- ================================================
+       READER VIEW
+       ============================================== -->
+  <div id="reader-view" class="view hidden">
+
+    <!-- Header -->
+    <header class="reader-header" id="reader-header">
+      <button class="icon-btn" id="back-btn" aria-label="Back to library">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+      </button>
+
+      <div class="reader-header-title">
+        <div class="title"></div>
+        <div class="author"></div>
+      </div>
+
+      <div class="reader-header-actions">
+        <button class="icon-btn" id="bookmarks-btn" aria-label="Bookmarks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="bookmark-btn" aria-label="Bookmark this chapter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="toc-btn" aria-label="Table of contents">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="settings-btn" aria-label="Reading settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Reading progress -->
+    <div class="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100">
+      <div class="reader-progress-fill" id="reader-progress-fill"></div>
+    </div>
+
+    <!-- Scrollable text -->
+    <div id="reader-content">
+      <div class="reader-inner" id="reader-inner"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="reader-footer">
+      <span id="footer-chapter"></span>
+      <span id="footer-time"></span>
+    </footer>
+
+  </div><!-- /reader-view -->
+
+
+  <!-- ================================================
+       PANEL BACKDROP
+       ============================================== -->
+  <div class="panel-backdrop" id="panel-backdrop" aria-hidden="true"></div>
+
+
+  <!-- ================================================
+       SETTINGS PANEL
+       ============================================== -->
+  <div class="panel" id="settings-panel" role="dialog" aria-label="Reading Settings" aria-modal="true">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <span class="panel-title">Reading Settings</span>
+      <button class="icon-btn" id="close-settings" aria-label="Close settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="panel-body">
+
+      <!-- Font size -->
+      <div class="setting-section">
+        <div class="setting-label">Font Size</div>
+        <div class="font-size-controls">
+          <button class="size-btn" id="font-decrease" aria-label="Decrease font size">A−</button>
+          <div class="size-display" id="font-size-display">18px</div>
+          <button class="size-btn" id="font-increase" aria-label="Increase font size">A+</button>
+        </div>
+      </div>
+
+      <!-- Font family -->
+      <div class="setting-section">
+        <div class="setting-label">Typeface</div>
+        <div class="font-options">
+          <button class="font-opt active" data-font="serif">Serif</button>
+          <button class="font-opt" data-font="sans">Sans</button>
+          <button class="font-opt" data-font="dyslexic">Mono</button>
+        </div>
+      </div>
+
+      <!-- Line height -->
+      <div class="setting-section">
+        <div class="setting-label">Line Spacing</div>
+        <input type="range" class="styled-slider" id="line-height-slider"
+               min="1.3" max="2.2" step="0.05" value="1.75" aria-label="Line spacing">
+      </div>
+
+      <!-- Margins -->
+      <div class="setting-section">
+        <div class="setting-label">Margins</div>
+        <div class="margin-options">
+          <button class="margin-opt" data-margin="narrow">Narrow</button>
+          <button class="margin-opt active" data-margin="medium">Medium</button>
+          <button class="margin-opt" data-margin="wide">Wide</button>
+        </div>
+      </div>
+
+      <!-- Theme -->
+      <div class="setting-section">
+        <div class="setting-label">Theme</div>
+        <div class="theme-options">
+          <button class="theme-opt active" data-theme="light">
+            <span class="theme-swatch swatch-light"></span>
+            Light
+          </button>
+          <button class="theme-opt" data-theme="sepia">
+            <span class="theme-swatch swatch-sepia"></span>
+            Sepia
+          </button>
+          <button class="theme-opt" data-theme="dark">
+            <span class="theme-swatch swatch-dark"></span>
+            Dark
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /settings-panel -->
+
+
+  <!-- ================================================
+       TABLE OF CONTENTS PANEL
+       ============================================== -->
+  <div class="panel" id="toc-panel" role="dialog" aria-label="Table of Contents" aria-modal="true">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <span class="panel-title">Contents</span>
+      <button class="icon-btn" id="close-toc" aria-label="Close table of contents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="panel-body">
+      <ul class="toc-list" id="toc-list" role="list"></ul>
+    </div>
+  </div><!-- /toc-panel -->
+
+
+  <!-- ================================================
+       BOOKMARKS PANEL
+       ============================================== -->
+  <div class="panel" id="bookmarks-panel" role="dialog" aria-label="Bookmarks" aria-modal="true">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <span class="panel-title">Bookmarks</span>
+      <button class="icon-btn" id="close-bookmarks" aria-label="Close bookmarks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="panel-body" id="bookmarks-body"></div>
+  </div><!-- /bookmarks-panel -->
+
+
+  <!-- ================================================
+       LOADING OVERLAY
+       ============================================== -->
+  <div class="loading-overlay fade-out" id="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-text">Opening book…</div>
+  </div>
+
+
+  <!-- ================================================
+       TOAST
+       ============================================== -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+</div><!-- /app -->
+
+<script src="js/books.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

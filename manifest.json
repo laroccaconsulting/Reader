@@ -1,0 +1,20 @@
+{
+  "name": "Reader — Classic Books",
+  "short_name": "Reader",
+  "description": "A beautiful offline ereader with 50 classic books from Project Gutenberg.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAFAF8",
+  "theme_color": "#6B5EA8",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["books", "education", "entertainment"],
+  "lang": "en"
+}
