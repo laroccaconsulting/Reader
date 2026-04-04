@@ -1,0 +1,98 @@
+name: Download Gutenberg Books
+
+on:
+  workflow_dispatch:   # run manually from the Actions tab
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/offline-ereader-app-k5Pz3
+
+      - name: Download and clean all books
+        run: |
+          python3 - <<'EOF'
+          import re, time, urllib.request, os
+
+          BOOKS = [
+            (1342,"Pride and Prejudice"),(84,"Frankenstein"),(1661,"Sherlock Holmes"),
+            (11,"Alice in Wonderland"),(5200,"The Metamorphosis"),(2701,"Moby-Dick"),
+            (98,"A Tale of Two Cities"),(844,"The Importance of Being Earnest"),
+            (174,"The Picture of Dorian Gray"),(345,"Dracula"),
+            (2554,"Crime and Punishment"),(43,"Dr Jekyll and Mr Hyde"),
+            (120,"Treasure Island"),(36,"The War of the Worlds"),
+            (1513,"Romeo and Juliet"),(1524,"Hamlet"),(1533,"Macbeth"),
+            (1514,"A Midsummer Night's Dream"),(74,"Tom Sawyer"),
+            (76,"Huckleberry Finn"),(1184,"The Count of Monte Cristo"),
+            (1257,"The Three Musketeers"),(103,"Around the World in 80 Days"),
+            (164,"Twenty Thousand Leagues"),(3748,"Journey to the Center of the Earth"),
+            (35,"The Time Machine"),(5230,"The Invisible Man"),
+            (2097,"The Island of Doctor Moreau"),(215,"The Call of the Wild"),
+            (910,"White Fang"),(161,"Sense and Sensibility"),(158,"Emma"),
+            (1260,"Jane Eyre"),(768,"Wuthering Heights"),(514,"Little Women"),
+            (4300,"Ulysses"),(996,"Don Quixote"),(135,"Les Misérables"),
+            (2600,"War and Peace"),(1399,"Anna Karenina"),
+            (28054,"The Brothers Karamazov"),(600,"Notes from Underground"),
+            (1727,"The Odyssey"),(6130,"The Iliad"),(1497,"The Republic"),
+            (2680,"Meditations"),(205,"Walden"),(132,"The Art of War"),
+            (2591,"Grimm's Fairy Tales"),(11339,"Aesop's Fables"),
+            (2852,"The Hound of the Baskervilles"),
+          ]
+
+          START_RE = re.compile(r'\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG[^\n]*\*{3}', re.I)
+          END_RE   = re.compile(r'\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG[^\n]*\*{3}',   re.I)
+
+          def clean(raw):
+              text = raw
+              m = START_RE.search(text)
+              if m: text = text[m.end():]
+              m = END_RE.search(text)
+              if m: text = text[:m.start()]
+              text = re.sub(r'\r\n|\r', '\n', text)
+              text = re.sub(r'\n{4,}', '\n\n\n', text)
+              return text.strip()
+
+          def fetch(book_id):
+              for url in [
+                  f"https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt",
+                  f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt",
+                  f"https://www.gutenberg.org/files/{book_id}/{book_id}.txt",
+              ]:
+                  try:
+                      req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'})
+                      with urllib.request.urlopen(req, timeout=60) as r:
+                          raw = r.read().decode('utf-8', errors='replace')
+                          if len(raw) > 500: return raw
+                  except: continue
+              return None
+
+          os.makedirs('books', exist_ok=True)
+          ok = fail = 0
+          for i, (bid, title) in enumerate(BOOKS):
+              out = f'books/{bid}.txt'
+              if os.path.exists(out) and os.path.getsize(out) > 500:
+                  print(f'  skip  {title}'); ok += 1; continue
+              print(f'  [{i+1}/{len(BOOKS)}] {title} ... ', end='', flush=True)
+              raw = fetch(bid)
+              if raw:
+                  with open(out,'w',encoding='utf-8') as f: f.write(clean(raw))
+                  print(f'OK ({os.path.getsize(out)//1024}KB)'); ok += 1
+              else:
+                  print('FAILED'); fail += 1
+              time.sleep(0.5)
+          print(f'\nResult: {ok} OK, {fail} failed')
+          EOF
+
+      - name: Commit books to repo
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add books/
+          git diff --cached --quiet && echo "Nothing new to commit" && exit 0
+          git commit -m "Add pre-downloaded Gutenberg book texts for offline serving"
+          git push

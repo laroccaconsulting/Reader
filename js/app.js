@@ -128,19 +128,19 @@ function dbDelete(store, key) {
    GUTENBERG FETCHING
    ===================================================== */
 
-// Try direct Gutenberg URLs, then fall back to a CORS proxy
+// Fetch book: repo-hosted copy first (same-origin, no CORS), then Gutenberg fallbacks
 async function fetchBookText(bookId) {
-  const direct = gutenbergUrls(bookId);
-
-  // Proxy variants — used when direct fetch is blocked by CORS
-  const PROXY = 'https://corsproxy.io/?';
-  const proxied = [
-    `${PROXY}${encodeURIComponent(`https://www.gutenberg.org/cache/epub/${bookId}/pg${bookId}.txt`)}`,
-    `${PROXY}${encodeURIComponent(`https://www.gutenberg.org/files/${bookId}/${bookId}-0.txt`)}`,
-    `${PROXY}${encodeURIComponent(`https://www.gutenberg.org/files/${bookId}/${bookId}.txt`)}`,
+  const urls = [
+    // Served from the repo via GitHub Pages — fastest, no CORS
+    `books/${bookId}.txt`,
+    // Direct Gutenberg cache CDN
+    ...gutenbergUrls(bookId),
+    // CORS proxy fallbacks
+    `https://corsproxy.io/?${encodeURIComponent(`https://www.gutenberg.org/cache/epub/${bookId}/pg${bookId}.txt`)}`,
+    `https://corsproxy.io/?${encodeURIComponent(`https://www.gutenberg.org/files/${bookId}/${bookId}-0.txt`)}`,
   ];
 
-  for (const url of [...direct, ...proxied]) {
+  for (const url of urls) {
     try {
       const resp = await fetch(url);
       if (!resp.ok) continue;
