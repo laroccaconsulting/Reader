@@ -127,11 +127,22 @@ function dbDelete(store, key) {
 /* =====================================================
    GUTENBERG FETCHING
    ===================================================== */
+
+// Try direct Gutenberg URLs, then fall back to a CORS proxy
 async function fetchBookText(bookId) {
-  const urls = gutenbergUrls(bookId);
-  for (const url of urls) {
+  const direct = gutenbergUrls(bookId);
+
+  // Proxy variants — used when direct fetch is blocked by CORS
+  const PROXY = 'https://corsproxy.io/?';
+  const proxied = [
+    `${PROXY}${encodeURIComponent(`https://www.gutenberg.org/cache/epub/${bookId}/pg${bookId}.txt`)}`,
+    `${PROXY}${encodeURIComponent(`https://www.gutenberg.org/files/${bookId}/${bookId}-0.txt`)}`,
+    `${PROXY}${encodeURIComponent(`https://www.gutenberg.org/files/${bookId}/${bookId}.txt`)}`,
+  ];
+
+  for (const url of [...direct, ...proxied]) {
     try {
-      const resp = await fetch(url, { cache: 'no-store' });
+      const resp = await fetch(url);
       if (!resp.ok) continue;
       const text = await resp.text();
       if (text.length > 500) return text;
@@ -806,6 +817,8 @@ function showToast(msg) {
 /* =====================================================
    BACKGROUND DOWNLOAD
    ===================================================== */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function backgroundDownloadAll() {
   const bar   = document.getElementById('download-bar');
   const fill  = document.getElementById('dl-fill');
@@ -815,30 +828,42 @@ async function backgroundDownloadAll() {
   if (!toFetch.length) return;
 
   let done = 0;
+  let failed = 0;
   bar.classList.add('visible');
 
-  // Fetch 3 at a time (rate-limit courtesy)
-  for (let i = 0; i < toFetch.length; i += 3) {
-    const batch = toFetch.slice(i, i + 3);
+  // Fetch 2 at a time with a pause between batches — avoids rate-limiting
+  for (let i = 0; i < toFetch.length; i += 2) {
+    const batch = toFetch.slice(i, i + 2);
     await Promise.allSettled(batch.map(async book => {
       state.downloading.add(book.id);
       try {
         await getOrFetchBook(book.id);
         state.downloaded.add(book.id);
-      } catch { /* silently skip */ }
+      } catch {
+        failed++;
+      }
       state.downloading.delete(book.id);
       done++;
       const pct = Math.round((done / toFetch.length) * 100);
       fill.style.width  = pct + '%';
-      label.textContent = `Downloading library… ${done}/${toFetch.length}`;
-      // Update library card icons if in library view
+      label.textContent = `Downloading library… ${done} / ${toFetch.length}`;
       if (state.view === 'library') renderLibrary();
     }));
+
+    // Brief pause between batches so Gutenberg doesn't rate-limit us
+    if (i + 2 < toFetch.length) await sleep(800);
   }
 
   bar.classList.remove('visible');
   if (state.view === 'library') renderLibrary();
-  showToast('All books ready for offline reading!');
+
+  if (failed === 0) {
+    showToast('All books ready for offline reading!');
+  } else if (failed < toFetch.length) {
+    showToast(`${toFetch.length - failed} books downloaded. Tap ↓ to retry the rest.`);
+  } else {
+    showToast('Download failed — check your connection and tap ↓ to retry.');
+  }
 }
 
 /* =====================================================
