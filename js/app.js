@@ -251,8 +251,9 @@ function escHtml(s) {
 function applyMarkup(text) {
   // Escape HTML first, then apply formatting
   let s = escHtml(text);
-  // _italic_ → <em>italic</em>  (but not lone underscores or __bold__)
-  s = s.replace(/\b_([^_\n]+?)_\b/g, '<em>$1</em>');
+  // _italic_ → <em>italic</em>
+  // \b doesn't work reliably because _ is a word char in JS regex; use lookahead instead
+  s = s.replace(/_((?:[^_\n])+?)_/g, '<em>$1</em>');
   // =bold= → <strong>bold</strong>
   s = s.replace(/=([^=\n]+?)=/g, '<strong>$1</strong>');
   return s;
