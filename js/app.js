@@ -247,6 +247,17 @@ function escHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+// Apply Gutenberg plain-text markup to a safe HTML string
+function applyMarkup(text) {
+  // Escape HTML first, then apply formatting
+  let s = escHtml(text);
+  // _italic_ → <em>italic</em>  (but not lone underscores or __bold__)
+  s = s.replace(/\b_([^_\n]+?)_\b/g, '<em>$1</em>');
+  // =bold= → <strong>bold</strong>
+  s = s.replace(/=([^=\n]+?)=/g, '<strong>$1</strong>');
+  return s;
+}
+
 function chapterToHtml(content) {
   const blocks = content.split(/\n\n+/);
   const parts = [];
@@ -255,31 +266,40 @@ function chapterToHtml(content) {
     const trimmed = block.trim();
     if (!trimmed) continue;
 
+    // Section break: "* * *" or "***" on its own line
+    if (/^\*[\s\*]*\*[\s\*]*\*$/.test(trimmed)) {
+      parts.push('<hr>');
+      continue;
+    }
+
+    // Skip [Illustration: ...] captions from Gutenberg
+    if (/^\[Illustration/i.test(trimmed)) continue;
+
     const lines = trimmed.split('\n').map(l => l.trim()).filter(Boolean);
     if (!lines.length) continue;
 
-    // Detect heading: 1-2 short lines, ALL CAPS or title-looking, no sentence punctuation
+    // Detect heading: 1-2 short ALL-CAPS lines, no sentence punctuation
     const isSingleLine = lines.length <= 2;
     const isShort = trimmed.length < 80;
     const isUpperish = trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed);
     const hasSentencePunct = /[.!?]$/.test(trimmed) && trimmed.length > 30;
 
     if (isSingleLine && isShort && isUpperish && !hasSentencePunct) {
-      parts.push(`<h3 class="chapter-sub">${escHtml(trimmed)}</h3>`);
+      parts.push(`<h3 class="chapter-sub">${applyMarkup(trimmed)}</h3>`);
       continue;
     }
 
-    // Verse / poetry detection: multiple short lines, no block is a sentence
+    // Verse / poetry: multiple short lines
     const isVerse = lines.length > 2 && lines.every(l => l.length < 60);
     if (isVerse) {
-      const joined = lines.map(l => escHtml(l)).join('<br>');
+      const joined = lines.map(l => applyMarkup(l)).join('<br>');
       parts.push(`<p class="verse">${joined}</p>`);
       continue;
     }
 
-    // Normal paragraph: join soft line breaks
+    // Normal paragraph
     const text = lines.join(' ');
-    parts.push(`<p>${escHtml(text)}</p>`);
+    parts.push(`<p>${applyMarkup(text)}</p>`);
   }
 
   return parts.join('\n');
