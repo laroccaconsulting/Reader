@@ -6,13 +6,13 @@
 
 const CACHE = 'reader-v1';
 const SHELL = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/js/books.js',
-  '/js/app.js',
-  '/manifest.json',
-  '/icons/icon.svg',
+  './',
+  './index.html',
+  './style.css',
+  './js/books.js',
+  './js/app.js',
+  './manifest.json',
+  './icons/icon.svg',
 ];
 
 // Install: cache the app shell
@@ -47,7 +47,7 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE).then(cache => cache.put(event.request, clone));
           }
           return resp;
-        }).catch(() => caches.match('/index.html'))
+        }).catch(() => caches.match('./index.html'))
       )
     );
     return;
