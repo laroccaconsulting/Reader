@@ -25,7 +25,7 @@
   --r-font-size:    18px;
   --r-line-height:  1.75;
   --r-font:         Georgia, 'Times New Roman', serif;
-  --r-margin:       clamp(20px, 7vw, 80px);
+  --r-margin:       clamp(14px, 4vw, 64px);
 
   /* layout */
   --header-h:       56px;
@@ -136,7 +136,7 @@ input {
 
 .library-header {
   flex-shrink: 0;
-  padding: calc(var(--safe-top) + 16px) 20px 0;
+  padding: calc(var(--safe-top) + 12px) 14px 0;
   background: var(--bg);
   position: relative;
   z-index: 10;
@@ -259,10 +259,10 @@ input {
 #book-grid {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 16px calc(var(--safe-bottom) + 16px);
+  padding: 8px 10px calc(var(--safe-bottom) + 12px);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
   align-content: start;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -519,7 +519,7 @@ input {
 .reader-inner {
   max-width: 680px;
   margin: 0 auto;
-  padding: 32px var(--r-margin) 48px;
+  padding: 20px var(--r-margin) 48px;
   font-family: var(--r-font);
   font-size: var(--r-font-size);
   line-height: var(--r-line-height);
@@ -1088,9 +1088,9 @@ input {
 }
 
 /* Margin settings applied via CSS var */
-.margin-narrow { --r-margin: clamp(16px, 3vw, 32px); }
-.margin-medium  { --r-margin: clamp(20px, 7vw, 72px); }
-.margin-wide    { --r-margin: clamp(24px, 12vw, 120px); }
+.margin-narrow  { --r-margin: clamp(10px, 2vw, 20px); }
+.margin-medium  { --r-margin: clamp(14px, 4vw, 64px); }
+.margin-wide    { --r-margin: clamp(20px, 9vw, 100px); }
 
 /* Font families */
 .font-serif   { --r-font: Georgia, 'Times New Roman', serif; }
@@ -1102,12 +1102,12 @@ input {
    ===================================================== */
 @media (min-width: 640px) {
   #book-grid {
-    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-    gap: 18px;
-    padding: 12px 24px calc(var(--safe-bottom) + 24px);
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 14px;
+    padding: 10px 16px calc(var(--safe-bottom) + 16px);
   }
 
-  .library-header { padding: calc(var(--safe-top) + 20px) 24px 0; }
+  .library-header { padding: calc(var(--safe-top) + 14px) 16px 0; }
   .panel { max-width: 520px; left: 50%; right: auto; transform: translateX(-50%) translateY(100%); border-radius: 24px 24px 0 0; }
   .panel.open { transform: translateX(-50%) translateY(0); }
 }
