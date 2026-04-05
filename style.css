@@ -444,17 +444,32 @@ input {
   transform: translateX(0);
 }
 
-/* Reader header */
+/* Progress bar — sits at very top edge */
+.reader-progress {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: transparent;
+  z-index: 12;
+}
+
+.reader-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s var(--ease);
+}
+
+/* Header — gradient overlay floating above text */
 .reader-header {
-  flex-shrink: 0;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 11;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: calc(var(--safe-top) + 10px) 12px 10px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
+  padding: calc(var(--safe-top) + 10px) 8px 32px;
+  background: linear-gradient(to bottom, var(--bg) 50%, transparent);
   transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
-  z-index: 10;
 }
 
 .reader-header.hide {
@@ -491,24 +506,10 @@ input {
   gap: 2px;
 }
 
-/* Reading progress bar */
-.reader-progress {
-  flex-shrink: 0;
-  height: 2px;
-  background: var(--border);
-  position: relative;
-  z-index: 9;
-}
-
-.reader-progress-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.3s var(--ease);
-}
-
-/* Scrollable content */
+/* Scrollable content — fills the entire reader-view */
 #reader-content {
-  flex: 1;
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -519,7 +520,8 @@ input {
 .reader-inner {
   max-width: 680px;
   margin: 0 auto;
-  padding: 20px var(--r-margin) 48px;
+  /* top/bottom padding keeps text clear of the floating overlays */
+  padding: calc(var(--safe-top) + 80px) var(--r-margin) calc(var(--safe-bottom) + 72px);
   font-family: var(--r-font);
   font-size: var(--r-font-size);
   line-height: var(--r-line-height);
@@ -646,21 +648,24 @@ input {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Reader footer — part of reader-view flex layout */
+/* Footer — gradient overlay floating above text at bottom */
 .reader-footer {
-  flex-shrink: 0;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 11;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  padding: 8px 20px calc(var(--safe-bottom) + 6px);
-  background: var(--bg-elevated);
-  border-top: 1px solid var(--border);
+  padding: 36px 20px calc(var(--safe-bottom) + 10px);
+  background: linear-gradient(to top, var(--bg) 50%, transparent);
   font-size: 12px;
   color: var(--text-3);
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  transition: opacity 0.3s var(--ease);
   pointer-events: none;
+  transition: opacity 0.3s var(--ease);
 }
+
+.reader-footer.hide { opacity: 0; }
 
 .reader-footer.hide {
   opacity: 0;
