@@ -102,8 +102,8 @@ input {
 
 /* ---- App Shell ---- */
 #app {
-  height: 100dvh;
-  position: relative;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
