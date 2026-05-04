@@ -1004,9 +1004,9 @@ async function init() {
   setupSwipeGesture();
   setupKeyboard();
 
-  // RSVP
-  document.getElementById('rsvp-btn').addEventListener('click', openRSVP);
-  setupRSVP();
+  // RSVP (guard against stale cached HTML missing these elements)
+  const rsvpBtn = document.getElementById('rsvp-btn');
+  if (rsvpBtn) { rsvpBtn.addEventListener('click', openRSVP); setupRSVP(); }
 
   // Register service worker
   if ('serviceWorker' in navigator) {
