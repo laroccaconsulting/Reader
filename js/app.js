@@ -992,6 +992,10 @@ async function init() {
   setupSwipeGesture();
   setupKeyboard();
 
+  // RSVP
+  document.getElementById('rsvp-btn').addEventListener('click', openRSVP);
+  setupRSVP();
+
   // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -999,6 +1003,169 @@ async function init() {
 
   // Start background download of all books (quietly)
   backgroundDownloadAll();
+}
+
+/* =====================================================
+   RSVP — Rapid Serial Visual Presentation
+   ===================================================== */
+const rsvp = {
+  words:   [],
+  index:   0,
+  wpm:     250,
+  playing: false,
+  timer:   null,
+};
+
+// Optimal Recognition Point index for a word
+function orpIndex(word) {
+  const n = word.replace(/[^a-zA-Z]/g, '').length || word.length;
+  if (n <= 1)  return 0;
+  if (n <= 5)  return 1;
+  if (n <= 9)  return 2;
+  if (n <= 13) return 3;
+  return 4;
+}
+
+function extractRSVPWords(content) {
+  return content
+    .replace(/\[Illustration[^\]]*\]/gi, '')
+    .split(/\s+/)
+    .map(w => w.trim())
+    .filter(w => w.length > 0);
+}
+
+function showRSVPWord(idx) {
+  const word  = rsvp.words[idx] || '';
+  const pivot = orpIndex(word);
+
+  document.getElementById('rsvp-left').textContent  = word.slice(0, pivot);
+  document.getElementById('rsvp-orp').textContent   = word[pivot] || '';
+  document.getElementById('rsvp-right').textContent = word.slice(pivot + 1);
+
+  const pct = rsvp.words.length > 1
+    ? Math.round((idx / (rsvp.words.length - 1)) * 100) : 100;
+  document.getElementById('rsvp-progress-fill').style.width = pct + '%';
+  document.getElementById('rsvp-progress-label').textContent =
+    `word ${idx + 1} of ${rsvp.words.length}`;
+
+  // Sync preset highlight
+  document.querySelectorAll('.rsvp-preset').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.wpm) === rsvp.wpm);
+  });
+}
+
+function rsvpDelay(word) {
+  const base = 60000 / rsvp.wpm;
+  if (/[.!?]$/.test(word))  return base * 2.2; // sentence end
+  if (/[,;:\-—]$/.test(word)) return base * 1.4; // clause break
+  if (word.length > 10)      return base * 1.2; // long word
+  return base;
+}
+
+function rsvpTick() {
+  if (!rsvp.playing) return;
+  rsvp.index++;
+  if (rsvp.index >= rsvp.words.length) {
+    rsvp.index = rsvp.words.length - 1;
+    rsvpPause();
+    return;
+  }
+  showRSVPWord(rsvp.index);
+  rsvp.timer = setTimeout(rsvpTick, rsvpDelay(rsvp.words[rsvp.index]));
+}
+
+function rsvpPlay() {
+  if (rsvp.index >= rsvp.words.length - 1) rsvp.index = 0;
+  rsvp.playing = true;
+  document.querySelector('.rsvp-play-btn .icon-play').style.display  = 'none';
+  document.querySelector('.rsvp-play-btn .icon-pause').style.display = '';
+  rsvp.timer = setTimeout(rsvpTick, rsvpDelay(rsvp.words[rsvp.index]));
+}
+
+function rsvpPause() {
+  rsvp.playing = false;
+  clearTimeout(rsvp.timer);
+  document.querySelector('.rsvp-play-btn .icon-play').style.display  = '';
+  document.querySelector('.rsvp-play-btn .icon-pause').style.display = 'none';
+}
+
+function rsvpTogglePlay() {
+  rsvp.playing ? rsvpPause() : rsvpPlay();
+}
+
+function rsvpSetWpm(wpm) {
+  rsvp.wpm = Math.max(50, Math.min(1000, wpm));
+  document.getElementById('rsvp-wpm-label').textContent = rsvp.wpm + ' wpm';
+  document.querySelectorAll('.rsvp-preset').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.wpm) === rsvp.wpm);
+  });
+}
+
+function openRSVP() {
+  if (!state.chapters.length) return;
+  const content = state.chapters[state.chapterIndex]?.content || '';
+  rsvp.words   = extractRSVPWords(content);
+  rsvp.index   = 0;
+  rsvp.playing = false;
+  clearTimeout(rsvp.timer);
+
+  // Reset play button state
+  document.querySelector('.rsvp-play-btn .icon-play').style.display  = '';
+  document.querySelector('.rsvp-play-btn .icon-pause').style.display = 'none';
+
+  rsvpSetWpm(rsvp.wpm);
+  showRSVPWord(0);
+  document.getElementById('rsvp-overlay').classList.add('open');
+}
+
+function closeRSVP() {
+  rsvpPause();
+  document.getElementById('rsvp-overlay').classList.remove('open');
+}
+
+function setupRSVP() {
+  document.getElementById('rsvp-close').addEventListener('click', closeRSVP);
+
+  document.getElementById('rsvp-play').addEventListener('click', rsvpTogglePlay);
+
+  document.getElementById('rsvp-prev').addEventListener('click', () => {
+    rsvpPause();
+    rsvp.index = Math.max(0, rsvp.index - 1);
+    showRSVPWord(rsvp.index);
+  });
+  document.getElementById('rsvp-next').addEventListener('click', () => {
+    rsvpPause();
+    rsvp.index = Math.min(rsvp.words.length - 1, rsvp.index + 1);
+    showRSVPWord(rsvp.index);
+  });
+  document.getElementById('rsvp-skip-back').addEventListener('click', () => {
+    rsvpPause();
+    rsvp.index = Math.max(0, rsvp.index - 10);
+    showRSVPWord(rsvp.index);
+  });
+  document.getElementById('rsvp-skip-fwd').addEventListener('click', () => {
+    rsvpPause();
+    rsvp.index = Math.min(rsvp.words.length - 1, rsvp.index + 10);
+    showRSVPWord(rsvp.index);
+  });
+
+  document.getElementById('rsvp-wpm-up').addEventListener('click', () =>
+    rsvpSetWpm(rsvp.wpm + 25));
+  document.getElementById('rsvp-wpm-down').addEventListener('click', () =>
+    rsvpSetWpm(rsvp.wpm - 25));
+
+  document.querySelectorAll('.rsvp-preset').forEach(btn => {
+    btn.addEventListener('click', () => rsvpSetWpm(parseInt(btn.dataset.wpm)));
+  });
+
+  // Spacebar toggles play/pause in RSVP
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('rsvp-overlay').classList.contains('open')) return;
+    if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); rsvpTogglePlay(); }
+    if (e.key === 'Escape') closeRSVP();
+    if (e.key === 'ArrowLeft')  { rsvpPause(); rsvp.index = Math.max(0, rsvp.index - 1); showRSVPWord(rsvp.index); }
+    if (e.key === 'ArrowRight') { rsvpPause(); rsvp.index = Math.min(rsvp.words.length - 1, rsvp.index + 1); showRSVPWord(rsvp.index); }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);

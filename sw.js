@@ -4,7 +4,7 @@
    Book text content is cached in IndexedDB by app.js.
    ==================================================== */
 
-const CACHE = 'reader-v2';
+const CACHE = 'reader-v3';
 const SHELL = [
   './',
   './index.html',

@@ -89,6 +89,11 @@
       </div>
 
       <div class="reader-header-actions">
+        <button class="icon-btn" id="rsvp-btn" aria-label="Speed read (RSVP)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </button>
         <button class="icon-btn" id="bookmarks-btn" aria-label="Bookmarks">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
@@ -247,6 +252,89 @@
     </div>
     <div class="panel-body" id="bookmarks-body"></div>
   </div><!-- /bookmarks-panel -->
+
+
+  <!-- ================================================
+       RSVP OVERLAY
+       ============================================== -->
+  <div class="rsvp-overlay" id="rsvp-overlay" aria-label="Speed Reader" role="dialog" aria-modal="true">
+
+    <!-- Header bar -->
+    <div class="rsvp-header">
+      <button class="icon-btn" id="rsvp-close" aria-label="Exit speed reader">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      <div class="rsvp-wpm-display">
+        <button class="rsvp-wpm-btn" id="rsvp-wpm-down" aria-label="Slower">−</button>
+        <span id="rsvp-wpm-label">250 wpm</span>
+        <button class="rsvp-wpm-btn" id="rsvp-wpm-up" aria-label="Faster">+</button>
+      </div>
+      <div style="width:40px"></div>
+    </div>
+
+    <!-- Word display -->
+    <div class="rsvp-stage">
+      <div class="rsvp-guide-top"></div>
+      <div class="rsvp-word-wrap">
+        <span class="rsvp-word-left"  id="rsvp-left"></span><!--
+        --><span class="rsvp-word-orp"  id="rsvp-orp"></span><!--
+        --><span class="rsvp-word-right" id="rsvp-right"></span>
+      </div>
+      <div class="rsvp-guide-bottom"></div>
+    </div>
+
+    <!-- Progress -->
+    <div class="rsvp-progress-wrap">
+      <div class="rsvp-progress-track">
+        <div class="rsvp-progress-fill" id="rsvp-progress-fill"></div>
+      </div>
+      <div class="rsvp-progress-label" id="rsvp-progress-label"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="rsvp-controls">
+      <button class="rsvp-ctrl-btn" id="rsvp-skip-back" aria-label="Back 10 words">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>
+        </svg>
+      </button>
+      <button class="rsvp-ctrl-btn" id="rsvp-prev" aria-label="Previous word">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <button class="rsvp-ctrl-btn rsvp-play-btn" id="rsvp-play" aria-label="Play / Pause">
+        <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 3l14 9-14 9V3z"/>
+        </svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+          <path d="M6 4h4v16H6zM14 4h4v16h-4z"/>
+        </svg>
+      </button>
+      <button class="rsvp-ctrl-btn" id="rsvp-next" aria-label="Next word">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      <button class="rsvp-ctrl-btn" id="rsvp-skip-fwd" aria-label="Forward 10 words">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 17l5-5-5-5M6 17l5-5-5-5"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Speed presets -->
+    <div class="rsvp-presets">
+      <button class="rsvp-preset" data-wpm="150">150</button>
+      <button class="rsvp-preset" data-wpm="250">250</button>
+      <button class="rsvp-preset" data-wpm="350">350</button>
+      <button class="rsvp-preset" data-wpm="500">500</button>
+      <button class="rsvp-preset" data-wpm="700">700</button>
+    </div>
+
+  </div><!-- /rsvp-overlay -->
 
 
   <!-- ================================================
