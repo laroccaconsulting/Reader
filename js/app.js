@@ -45,6 +45,7 @@ function saveSettings() {
 function applySettings() {
   const app = document.getElementById('app');
   app.setAttribute('data-theme', state.settings.theme);
+  document.documentElement.setAttribute('data-theme', state.settings.theme);
   app.className = [
     `font-${state.settings.fontFamily}`,
     `margin-${state.settings.margin}`,

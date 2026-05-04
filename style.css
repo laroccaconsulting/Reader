@@ -565,15 +565,6 @@ input {
   margin-top: 0;
 }
 
-/* Drop cap for first paragraph of chapter */
-.chapter-start p:first-of-type::first-letter {
-  float: left;
-  font-size: 3.4em;
-  line-height: 0.82;
-  margin: 0.06em 0.08em 0 0;
-  color: var(--accent);
-  font-weight: 700;
-}
 
 .reader-inner .chapter-sub {
   font-family: var(--r-font);
