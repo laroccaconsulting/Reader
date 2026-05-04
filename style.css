@@ -521,7 +521,7 @@ input {
   max-width: 680px;
   margin: 0 auto;
   /* top/bottom padding keeps text clear of the floating overlays */
-  padding: calc(var(--safe-top) + 80px) var(--r-margin) calc(var(--safe-bottom) + 16px);
+  padding: calc(var(--safe-top) + 80px) var(--r-margin) max(8px, var(--safe-bottom));
   font-family: var(--r-font);
   font-size: var(--r-font-size);
   line-height: var(--r-line-height);
@@ -1190,7 +1190,7 @@ input {
   background: var(--border);
 }
 .rsvp-guide-top    { top:    calc(50% - 1.5em); }
-.rsvp-guide-bottom { bottom: calc(50% - 0.6em); }
+.rsvp-guide-bottom { bottom: calc(50% - 1.1em); }
 
 /* Red tick above ORP position */
 .rsvp-guide-top::after {
