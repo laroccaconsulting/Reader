@@ -145,20 +145,31 @@ async function fetchBookText(bookId) {
     try {
       const resp = await fetch(url);
       if (!resp.ok) continue;
-      const text = await resp.text();
-      if (text.length > 500) return text;
+      const buf = await resp.arrayBuffer();
+      // Try strict UTF-8 first; fall back to ISO-8859-1 (common on Gutenberg)
+      let text;
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(buf);
+      } catch {
+        text = new TextDecoder('iso-8859-1').decode(buf);
+      }
+      // Sanity-check: must look like readable prose
+      if (text.length > 500 && /\bthe\b/i.test(text)) return text;
     } catch { /* try next */ }
   }
   throw new Error(`Cannot fetch book ${bookId}`);
 }
 
+const BOOK_CACHE_VERSION = 2;
+
 async function getOrFetchBook(bookId) {
   const cached = await dbGet('books', bookId);
-  if (cached) return cached.text;
+  // Discard entries saved before encoding fix (v2)
+  if (cached && cached.v === BOOK_CACHE_VERSION) return cached.text;
 
   const raw  = await fetchBookText(bookId);
   const text = parseGutenbergText(raw);
-  await dbPut('books', { id: bookId, text, fetched: Date.now() });
+  await dbPut('books', { id: bookId, text, fetched: Date.now(), v: BOOK_CACHE_VERSION });
   state.downloaded.add(bookId);
   return text;
 }
