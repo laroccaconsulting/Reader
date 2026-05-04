@@ -521,7 +521,7 @@ input {
   max-width: 680px;
   margin: 0 auto;
   /* top/bottom padding keeps text clear of the floating overlays */
-  padding: calc(var(--safe-top) + 80px) var(--r-margin) calc(var(--safe-bottom) + 72px);
+  padding: calc(var(--safe-top) + 80px) var(--r-margin) calc(var(--safe-bottom) + 16px);
   font-family: var(--r-font);
   font-size: var(--r-font-size);
   line-height: var(--r-line-height);
@@ -647,8 +647,8 @@ input {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 36px 20px calc(var(--safe-bottom) + 10px);
-  background: linear-gradient(to top, var(--bg) 50%, transparent);
+  padding: 24px 20px calc(var(--safe-bottom) + 8px);
+  background: linear-gradient(to top, var(--bg) 40%, transparent);
   font-size: 12px;
   color: var(--text-3);
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
