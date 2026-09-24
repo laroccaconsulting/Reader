@@ -2,13 +2,26 @@
 
 const VERSION = '__VERSION__'
 const CACHE = `reader-shell-${VERSION}`
-const PRECACHE = __PRECACHE__
+const PRECACHE = __PRECACHE__ // { url: sha256 }
+
+const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
+    // cache: 'reload' bypasses the HTTP cache, and every file must match this
+    // version's fingerprint. Right after a deploy a CDN can still hand out some
+    // old files; then this update fails, the current version keeps working, and
+    // the browser tries again later.
+    const files = await Promise.all(Object.entries(PRECACHE).map(async ([url, expected]) => {
+      const request = new Request(url, { cache: 'reload' })
+      const response = await fetch(request)
+      if (!response.ok) throw new Error(`${url}: ${response.status}`)
+      const actual = hex(await crypto.subtle.digest('SHA-256', await response.clone().arrayBuffer()))
+      if (actual !== expected) throw new Error(`${url} is from a different version`)
+      return [request, response]
+    }))
     const cache = await caches.open(CACHE)
-    // cache: 'reload' bypasses the HTTP cache so a new version never mixes in stale files
-    await cache.addAll(PRECACHE.map(url => new Request(url, { cache: 'reload' })))
+    await Promise.all(files.map(([request, response]) => cache.put(request, response)))
   })())
   // First install activates immediately; updates wait for the user to accept (see sw-client.js).
   // The legacy 1.x worker ("reader-vN" caches) has no update prompt, so replace it right away.

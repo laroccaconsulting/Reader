@@ -815,6 +815,8 @@ async function init() {
   })
   addEventListener('popstate', route)
   await route()
+  window.__readFreeStarted = true
+  document.getElementById('boot-rescue')?.remove()
 
   importSharedFiles()
   registerServiceWorker()
@@ -822,6 +824,6 @@ async function init() {
 }
 
 init().catch(e => {
-  console.error(e)
-  document.body.insertAdjacentHTML('beforeend', `<p style="padding:24px">Read Free failed to start: ${esc(e.message)}</p>`)
+  console.error('Read Free failed to start', e)
+  window.__readFreeRescue?.()
 })
