@@ -9,6 +9,7 @@ import { $, toast, formatBytes } from '../ui/dom.js'
 import { coverUrl } from '../ui/covers.js'
 import { findRecording } from './librivox.js'
 import { mapTracks } from './chapters.js'
+import { syncPoints, timeToFraction, fractionToTime, leadFromAnchor, DEFAULT_LEAD } from './sync.js'
 
 /* Saved narration lives in the 'files' store next to book files; the list of a
  * book's saved chapters is kept in kv `audiofiles|<bookId>` so removal is cheap. */
@@ -30,6 +31,9 @@ export class ReadAlong extends EventTarget {
   #lastFollow = 0
   #navigating = false
   #navTarget = null
+  #sync = { lead: DEFAULT_LEAD, anchors: {} } // per book: narrator's intro length and tapped marks per track
+  #aligning = false
+  #docIndex = new WeakMap()
   #lastSave = 0
   #lookupToken = 0
 
@@ -50,6 +54,19 @@ export class ReadAlong extends EventTarget {
     $('#audio-sync').addEventListener('click', () => { this.#following = true; this.#follow(true) })
     $('#audio-save').addEventListener('click', () => this.saveOffline())
     $('#audio-close').addEventListener('click', () => this.stop())
+    $('#audio-align').addEventListener('click', () => this.#setAligning(!this.#aligning))
+    $('#audio-align-reset').addEventListener('click', () => this.#resetSync())
+    // While aligning, a tap on the text marks where the narrator is (and doesn't turn the page)
+    reader.addEventListener('section-load', e => {
+      const { doc, index } = e.detail
+      this.#docIndex.set(doc, index)
+      doc.addEventListener('click', ev => {
+        if (!this.#aligning) return
+        ev.preventDefault(); ev.stopPropagation()
+        this.#markAt(doc, ev.clientX, ev.clientY)
+      }, true)
+    })
+    reader.addEventListener('tap', e => { if (this.#aligning) e.preventDefault() })
     $('#audio-seek').addEventListener('input', e => {
       if (this.audio.duration) this.audio.currentTime = Number(e.target.value) * this.audio.duration
     })
@@ -88,6 +105,7 @@ export class ReadAlong extends EventTarget {
       if (token !== this.#lookupToken || !recording) return
       this.recording = recording
       this.tracks = mapTracks(recording.tracks, this.reader.book?.toc ?? [])
+      this.#sync = { lead: DEFAULT_LEAD, anchors: {}, ...(await db.kvGet(this.#syncKey(), null)) }
       this.btn.hidden = false
       this.btn.title = `Listen: LibriVox recording (${fmt(recording.totalDuration)})`
     } catch (e) {
@@ -112,6 +130,7 @@ export class ReadAlong extends EventTarget {
 
   stop() {
     if (!this.active) return
+    this.#setAligning(false)
     this.#savePosition(true)
     this.active = false
     this.audio.pause()
@@ -132,10 +151,10 @@ export class ReadAlong extends EventTarget {
 
   /** Roughly where in track i the narrator reads the current page (from the track's listed length). */
   #estimateTime(i) {
-    const span = this.#span(i), page = this.#pageBounds(), d = this.tracks[i]?.duration
-    if (!span || !page || !d || span.to <= span.from) return 0
-    const f = (page.from - span.from) / (span.to - span.from)
-    return f > 0.02 && f < 1 ? Math.max(0, f * d - 5) : 0
+    const points = this.#points(i, this.tracks[i]?.duration), page = this.#pageBounds()
+    if (!points || !page) return 0
+    const t = fractionToTime(points, page.from)
+    return t > points[0].t + 2 ? Math.max(0, t - 3) : 0
   }
 
   /** The track whose chapter contains (or most recently precedes) the current page. */
@@ -204,12 +223,67 @@ export class ReadAlong extends EventTarget {
     return { from: fractions[start] ?? 0, to: endSection != null ? fractions[endSection] : (fractions[start + 1] ?? 1) }
   }
 
-  /** Where in the book (0–1) the narrator is, estimated by time through the track. */
+  #syncKey() { return `audiosync|${this.reader.record?.id}|${this.recording?.id}` }
+
+  /** Time→book-fraction points for track i (see sync.js). */
+  #points(i, duration = this.audio.duration) {
+    const span = this.#span(i)
+    if (!span || !(duration > 0) || span.to <= span.from) return null
+    return syncPoints({ ...span, duration, lead: this.#sync.lead, anchors: this.#sync.anchors[i] ?? [] })
+  }
+
+  /** Where in the book (0–1) the narrator is. */
   #narratedFraction() {
-    if (!this.audio.duration) return null
+    const points = this.#points(this.index)
+    return points ? Math.min(0.9999, timeToFraction(points, this.audio.currentTime)) : null
+  }
+
+  /* ---------------- fine-tuning the sync ---------------- */
+
+  #setAligning(on) {
+    this.#aligning = on
+    this.bar.classList.toggle('aligning', on)
+    this.reader.root.classList.toggle('audio-aligning', on)
+    $('#audio-align').setAttribute('aria-pressed', String(on))
+    this.#renderState()
+  }
+
+  /** The reader tapped the word they're hearing: remember that spot for this track. */
+  #markAt(doc, x, y) {
+    const index = this.#docIndex.get(doc)
+    const fractions = this.reader.view?.getSectionFractions?.() ?? []
+    const pos = doc.caretPositionFromPoint?.(x, y)
+    const range = pos ? doc.createRange() : doc.caretRangeFromPoint?.(x, y)
+    if (pos) range.setStart(pos.offsetNode, pos.offset)
+    if (index == null || !range || fractions[index] == null) return
+    const before = doc.createRange()
+    before.setStart(doc.body, 0)
+    before.setEnd(range.startContainer, range.startOffset)
+    const within = before.toString().length / Math.max(1, doc.body.textContent.length)
+    const f = fractions[index] + within * ((fractions[index + 1] ?? 1) - fractions[index])
+    const t = Math.max(0, this.audio.currentTime - 0.6) // people tap a moment after hearing the word
     const span = this.#span(this.index)
-    if (!span) return null
-    return Math.min(0.9999, span.from + (this.audio.currentTime / this.audio.duration) * (span.to - span.from))
+    if (!span || f < span.from || f > span.to) { toast('That’s outside the chapter being read'); return }
+    const list = (this.#sync.anchors[this.index] ?? []).filter(a => Math.abs(a.t - t) > 4 && Math.abs(a.f - f) > 0.0005)
+    list.push({ t, f })
+    this.#sync.anchors[this.index] = list
+    const lead = leadFromAnchor({ ...span, duration: this.audio.duration }, { t, f })
+    if (lead != null) this.#sync.lead = lead
+    db.kvSet(this.#syncKey(), this.#sync).catch(() => {})
+    this.#setAligning(false)
+    this.#following = true
+    toast('Synced. Pages will follow from here.')
+    this.#renderState()
+    this.#follow() // already on the right page; turns only if the narrator is past it
+  }
+
+  #resetSync() {
+    this.#sync = { lead: DEFAULT_LEAD, anchors: {} }
+    db.kvSet(this.#syncKey(), this.#sync).catch(() => {})
+    this.#setAligning(false)
+    toast('Sync reset')
+    this.#following = true
+    this.#follow(true)
   }
 
   #pageBounds() {
@@ -297,7 +371,9 @@ export class ReadAlong extends EventTarget {
 
   #renderState() {
     const t = this.tracks[this.index]
-    $('#audio-track').textContent = t ? (t.label && t.title !== t.label ? `${t.title} · ${t.label}` : t.title) : ''
+    $('#audio-track').textContent = this.#aligning ? 'Tap the word you’re hearing'
+      : t ? (t.label && t.title !== t.label ? `${t.title} · ${t.label}` : t.title) : ''
+    $('#audio-align-reset').hidden = !this.#aligning || !(Object.keys(this.#sync.anchors).length || this.#sync.lead !== DEFAULT_LEAD)
     this.bar.classList.toggle('playing', !this.audio.paused)
     $('#audio-sync').hidden = this.#following
   }

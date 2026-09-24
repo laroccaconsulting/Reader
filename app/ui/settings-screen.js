@@ -6,6 +6,7 @@ import { settings, update, THEMES } from '../settings.js'
 import { relayed, relayUrl, PUBLIC_RELAY } from '../net.js'
 import { $, html, toast, formatBytes } from './dom.js'
 import { APP_VERSION } from '../version.js'
+import * as installer from './install.js'
 
 const THEME_LABELS = { auto: 'Match system', light: 'Light', sepia: 'Sepia', dark: 'Dark', black: 'Black' }
 
@@ -91,12 +92,22 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
       </div>
     </section>
 
+    ${installer.installMode() ? html`<section class="settings-group">
+      <h2>App</h2>
+      <div class="card">
+        <div class="row"><div class="row-main">
+          <div class="row-title">Add to home screen</div>
+          <div class="row-sub">Opens full-screen like any app, works offline, and keeps your library safe from the browser clearing it.</div>
+        </div><button class="btn" id="install-app">Install</button></div>
+      </div>
+    </section>` : ''}
+
     <section class="settings-group">
       <h2>About</h2>
       <div class="card">
         <div class="prose">
           <p><strong>Read Free ${APP_VERSION}</strong> is free and open-source software. It has no ads, no accounts and no analytics, and it never will.</p>
-          <p><strong>Privacy:</strong> everything (your books, progress, bookmarks and settings) stays on this device. The app only contacts the libraries you browse and download from, directly. It has no servers of its own.</p>
+          <p><strong>Privacy:</strong> everything (your books, progress, bookmarks and settings) stays on this device. The app only contacts the libraries you browse and download from, directly. Its only server is a logless relay that fetches Project Gutenberg books, which Gutenberg won’t send to web apps directly.</p>
           <p>Books come from <a href="https://www.gutenberg.org" target="_blank" rel="noopener">Project Gutenberg</a> and <a href="https://standardebooks.org" target="_blank" rel="noopener">Standard Ebooks</a>, both volunteer-run. Consider supporting them.</p>
           <p>Rendering by <a href="https://github.com/johnfactotum/foliate-js" target="_blank" rel="noopener">foliate-js</a> (MIT). Fonts: Literata, Atkinson Hyperlegible and OpenDyslexic (SIL OFL).
             <a href="https://github.com/laroccaconsulting/Reader" target="_blank" rel="noopener">Source code</a>.</p>
@@ -112,6 +123,7 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
     }
   }
 
+  $('#install-app', root)?.addEventListener('click', () => installer.install())
   $('#relay-save', root).addEventListener('click', () => {
     const v = $('#relay-url', root).value.trim()
     if (v && !/^https:\/\//.test(v)) { toast('The relay address must start with https://'); return }

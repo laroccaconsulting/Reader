@@ -200,7 +200,9 @@ Start **Phase 0** on this branch. It is small, fixes visible bugs for readers to
 | P5.2 i18n | Not started |
 | P5.3 backup and sync | Backup/restore done. Sync not started |
 | P5.4 performance | Startup ~102 KB gzip (budget 110 KB), enforced in CI; read-along loads with the first book |
-| Audiobook read-along | Done (step 1–2): 🎧 finds the book's LibriVox recording through the Internet Archive (search, metadata and MP3s allow browser access), maps tracks to chapters, follows the narration page by page (estimated by time), lock-screen controls, offline saving. Word-level sync not started |
+| Audiobook read-along | Done (step 1–2): 🎧 finds the book's LibriVox recording through the Internet Archive (search, metadata and MP3s allow browser access), maps tracks to chapters, follows the narration page by page (estimated by time), lock-screen controls, offline saving. Timing skips the LibriVox introduction and sign-off; "Fix the sync" lets the reader tap the word they hear (marks are saved per book, and a mark near a chapter start measures the narrator's introduction for every chapter). Word-level sync not started |
+| Hosting | https://readfree.app on Cloudflare (static assets, deployed by `deploy-site.yml` when the published branch moves); relay at https://relay.readfree.app. The github.io copy stays up |
+| Install guidance | Library banner after some reading (Install button where the browser offers it, a step-by-step guide on iPhone/iPad, "open in Safari" inside in-app browsers), snoozed for 3 weeks on "Not now"; always in Settings |
 
 **Needs you:** deploying the optional Gutenberg relay (`relay/README.md`, about 5 minutes on a free Cloudflare account),
 and a manual pass on a real iPhone/Android (install to home screen, read aloud with system voices, share-to-app).

@@ -1,0 +1,14 @@
+# The app itself, served from Cloudflare at https://readfree.app.
+# Static files only (no Worker code runs), so requests cost nothing.
+# Deployed by .github/workflows/deploy-site.yml from the published branch.
+name = "readfree"
+compatibility_date = "2025-06-01"
+workers_dev = true
+routes = [{ pattern = "readfree.app", custom_domain = true }]
+
+[assets]
+directory = "../dist"
+not_found_handling = "none"
+
+[observability]
+enabled = false

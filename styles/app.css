@@ -256,6 +256,13 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .banner strong { display: block; font-size: 15px; margin-bottom: 2px; }
 .banner .banner-actions { display: flex; gap: 8px; }
 .banner .bar { flex-basis: 100%; }
+.banner-icon { width: 44px; height: 44px; border-radius: 11px; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.install-lead { font-size: 15px; line-height: 1.5; color: var(--text-2); margin-bottom: 14px; }
+.install-steps { counter-reset: step; list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 12px; }
+.install-steps li { counter-increment: step; position: relative; padding: 2px 0 0 40px; font-size: 16px; line-height: 1.5; }
+.install-steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-dim); color: var(--accent-text); font-weight: 700; font-size: 14px; }
+.install-hint { display: block; font-size: 13px; color: var(--text-3); }
+.inline-icon { width: 20px; height: 20px; vertical-align: -4px; fill: none; stroke: var(--accent-text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
 .bar > i { display: block; height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s var(--ease); }
@@ -564,6 +571,14 @@ input[type="range"] { accent-color: var(--accent); width: 100%; min-height: 32px
 .audio-meta { display: flex; justify-content: space-between; gap: 12px; padding: 0 8px; font-size: 12px; color: var(--text-2); }
 .audio-track { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text); }
 .audio-time { flex: none; font-variant-numeric: tabular-nums; }
+.audio-meta { align-items: center; }
+.audio-track { flex: 1; min-width: 0; }
+.audio-align { flex: none; width: 30px; height: 30px; margin: -6px -4px -6px 0; display: grid; place-items: center; border-radius: 8px; color: var(--text-2); }
+.audio-align svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.audio-align[aria-pressed="true"] { color: var(--on-accent); background: var(--accent); }
+.audio-link { flex: none; font-size: 12px; font-weight: 600; color: var(--accent-text, var(--accent)); text-decoration: underline; }
+.audio-bar.aligning .audio-track { color: var(--accent-text, var(--accent)); }
+.reader.audio-aligning #reader-stage { cursor: crosshair; }
 #audio-seek { width: auto; margin: 2px 8px; accent-color: var(--accent); }
 .audio-buttons { display: flex; align-items: center; justify-content: space-between; }
 .audio-bar .audio-play { color: var(--accent); }

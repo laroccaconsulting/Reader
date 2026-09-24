@@ -115,3 +115,36 @@ test('read-along: no button when there is no recording, and the miss is remember
   await page.waitForTimeout(500)
   expect(requests).toHaveLength(1)
 })
+
+test('read-along: tapping the word you hear fixes the sync, and it is remembered', async ({ page }) => {
+  await mockArchive(page)
+  await openLibrary(page)
+  await openStarterBook(page, 'pg-1342')
+  await page.click('#audio-btn')
+  await expect(page.locator('#audio-bar')).toBeVisible()
+  await expect.poll(() => page.evaluate(() => readerApp.readAlong.audio.readyState >= 1)).toBe(true)
+  await page.evaluate(() => { const a = readerApp.readAlong.audio; a.pause(); a.currentTime = 4 })
+  await page.waitForTimeout(1200) // let the page follow the seek before tapping
+
+  await page.click('#audio-align')
+  await expect(page.locator('#audio-track')).toHaveText('Tap the word you’re hearing')
+  const before = await page.evaluate(() => readerApp.reader.location.fraction)
+  // tap a word in the middle of the page
+  const stage = await page.locator('#reader-stage').boundingBox()
+  await page.mouse.click(stage.x + stage.width * 0.4, stage.y + stage.height * 0.5)
+  await expect(page.locator('#toast')).toContainText('Synced')
+  await expect(page.locator('#audio-align')).toHaveAttribute('aria-pressed', 'false')
+
+  const saved = await page.evaluate(async () => (await import('./app/db.js')).kvGet('audiosync|pg-1342|pride_prejudice_test', null))
+  expect(saved.anchors[0]).toHaveLength(1)
+  expect(saved.anchors[0][0].t).toBeCloseTo(3.4, 1)
+  expect(saved.anchors[0][0].f).toBeGreaterThan(0)
+  expect(saved.anchors[0][0].f).toBeLessThanOrEqual(before + 0.001)
+
+  // Reset clears it
+  await page.click('#audio-align')
+  await page.click('#audio-align-reset')
+  await expect(page.locator('#toast')).toContainText('Sync reset')
+  const cleared = await page.evaluate(async () => (await import('./app/db.js')).kvGet('audiosync|pg-1342|pride_prejudice_test', null))
+  expect(cleared.anchors).toEqual({})
+})

@@ -45,6 +45,7 @@
     <div class="scroll" id="library-scroll">
       <div class="stats-line" id="stats-line" hidden></div>
       <div id="continue-slot"></div>
+      <div id="install-slot"></div>
       <div id="banner-slot"></div>
 
       <div class="library-tools">
@@ -170,8 +171,12 @@
     <audio id="audio-el" preload="metadata"></audio>
     <div class="audio-bar" id="audio-bar" role="region" aria-label="Audiobook controls" hidden>
       <div class="audio-meta">
-        <span class="audio-track" id="audio-track"></span>
+        <span class="audio-track" id="audio-track" aria-live="polite"></span>
+        <button class="audio-link" id="audio-align-reset" hidden>Reset</button>
         <span class="audio-time" id="audio-time">0:00 / 0:00</span>
+        <button class="audio-align" id="audio-align" aria-pressed="false" aria-label="Fix the sync: tap the word you’re hearing" title="Fix the sync">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        </button>
       </div>
       <input type="range" id="audio-seek" min="0" max="1" step="0.001" value="0" aria-label="Position in chapter">
       <div class="audio-buttons">
@@ -255,6 +260,15 @@
         <button class="btn danger" id="note-delete">Delete highlight</button>
       </div>
     </div>
+  </div>
+
+  <div class="sheet" id="sheet-install" role="dialog" aria-modal="true" aria-labelledby="install-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="install-title">Add Read Free to your home screen</h2>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" id="install-body"></div>
   </div>
 
   <div class="sheet" id="sheet-define" role="dialog" aria-modal="true" aria-labelledby="define-title" aria-hidden="true" tabindex="-1">

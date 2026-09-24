@@ -22,6 +22,7 @@ import * as PG from './catalog/gutenberg.js'
 import { shareQuote } from './share/share-sheet.js'
 import { parseLink, recordIdFor } from './share/quote-link.js'
 import { relayConfigured } from './net.js'
+import * as installer from './ui/install.js'
 
 const state = {
   books: [],
@@ -70,6 +71,7 @@ function renderLibrary() {
 
   renderContinue()
   renderBanner()
+  renderInstall()
   renderStats()
 
   const grid = $('#book-grid')
@@ -136,6 +138,27 @@ async function renderStats() {
     ${s.streak > 1 ? html`<span><strong>${s.streak}</strong>-day streak</span>` : ''}
     <span class="spark" aria-hidden="true">${s.week.map(w => html`<i style="height:${Math.max(8, Math.round(w.seconds / max * 100))}%" class="${w.seconds ? 'on' : ''}"></i>`)}</span>`)
 }
+
+async function renderInstall() {
+  const slot = $('#install-slot')
+  const hasRead = (await stats.summary().catch(() => null))?.total > 0
+  if (!(await installer.shouldNudge(hasRead))) { slot.innerHTML = ''; return }
+  const mode = installer.installMode()
+  slot.innerHTML = str(html`
+    <div class="banner">
+      <img class="banner-icon" src="icons/icon-192.png" alt="">
+      <p><strong>Put Read Free on your home screen</strong>${mode === 'in-app'
+        ? 'Open this page in Safari or your browser to install it.'
+        : 'It opens like an app, works offline and keeps your library safe.'}</p>
+      <div class="banner-actions">
+        <button class="btn primary" id="install-go">${mode === 'prompt' ? 'Install' : 'Show me how'}</button>
+        <button class="btn ghost" id="install-later">Not now</button>
+      </div>
+    </div>`)
+  $('#install-go').addEventListener('click', () => installer.install())
+  $('#install-later').addEventListener('click', async () => { await installer.snooze(); renderInstall() })
+}
+installer.onInstallChange(() => { if (currentRoute() === 'library') renderInstall() })
 
 async function renderBanner() {
   const slot = $('#banner-slot')
@@ -765,7 +788,8 @@ async function init() {
   applyTheme()
   onChange((_, patch) => { if ('theme' in patch) applyTheme() })
 
-  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote', 'share', 'quote']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote', 'share', 'quote', 'install']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  installer.setGuideSheet(sheets.install)
   $('#sheet-backdrop').addEventListener('click', () => Sheet.closeTop())
 
   // Broken remote cover images fall back to the generated cover underneath.
