@@ -1,7 +1,7 @@
-name: CORS probe
+name: Catalog probe
 
-# Checks which free-library endpoints can be fetched directly from a browser
-# (i.e. send Access-Control-Allow-Origin). Informational only.
+# Informational: checks CORS headers of free-library endpoints and dumps
+# response samples used to build/verify the catalog parsers.
 on:
   workflow_dispatch:
   push:
@@ -11,32 +11,22 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe endpoints
+      - name: Dump samples
         run: |
-          probe() {
-            echo "=== $1"
-            curl -sS -m 30 -L -o /dev/null -D - -H "Origin: https://laroccaconsulting.github.io" "$@" \
-              | grep -iE '^(HTTP/|access-control-allow-origin|location|content-type)' || echo "request failed"
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+          dump() {
+            echo "::group::$1"
+            curl -sS -m 30 -L -A "$UA" -H "Origin: https://laroccaconsulting.github.io" -D /tmp/h -o /tmp/b "$1" || true
+            grep -iE '^(HTTP/|access-control|content-type|location)' /tmp/h
+            echo "--- body (${2:-6000} bytes) ---"
+            head -c "${2:-6000}" /tmp/b; echo
+            echo "::endgroup::"
           }
-          probe "https://gutendex.com/books/?search=dickens" -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
-          probe "https://archive.org/download/frankensteinorth00shel/frankensteinorth00shel.epub"
-          probe "https://archive.org/services/img/frankensteinorth00shel"
-          probe "https://archive.org/advancedsearch.php?q=collection%3Agutenberg+AND+frankenstein&fl%5B%5D=identifier&fl%5B%5D=format&rows=3&output=json"
-          for m in \
-            https://gutenberg.pglaf.org \
-            https://aleph.gutenberg.org \
-            https://gutenberg.readingroo.ms \
-            https://mirror.csclub.uwaterloo.ca/gutenberg \
-            https://gutenberg.nabasny.com \
-            https://mirrors.xmission.com/gutenberg \
-            https://www.gutenberg.org/dirs \
-            https://gutenberg.mirror.garr.it/mirrors/gutenberg \
-            https://ftp.mirrorservice.org/sites/ftp.ibiblio.org/pub/docs/books/gutenberg \
-            https://mirrors.ocf.berkeley.edu/gutenberg ; do
-            probe "$m/8/84/84-0.txt"
-            probe "$m/cache/epub/84/pg84-images-3.epub"
-            probe "$m/cache/generated/84/pg84-images-3.epub"
-          done
-          probe "https://www.gutenberg.org/cache/epub/feeds/pg_catalog.csv.gz"
-          probe "https://cdn.jsdelivr.net/gh/laroccaconsulting/Reader@claude/offline-ereader-app-k5Pz3/books/84.txt"
-          probe "https://raw.githubusercontent.com/laroccaconsulting/Reader/claude/offline-ereader-app-k5Pz3/books/84.txt"
+          dump "https://standardebooks.org/ebooks?query=frankenstein&per-page=12" 20000
+          dump "https://standardebooks.org/ebooks?per-page=12&sort=popularity" 3000
+          dump "https://standardebooks.org/ebooks/mary-shelley/frankenstein" 3000
+          dump "https://standardebooks.org/feeds/atom/new-releases" 4000
+          dump "https://standardebooks.org/feeds/rss/new-releases" 2000
+          dump "https://www.gutenberg.org/ebooks/search.opds/?query=frankenstein" 9000
+          dump "https://www.gutenberg.org/ebooks/84.opds" 9000
+          dump "https://gutendex.com/books/?search=frankenstein" 1500
