@@ -63,6 +63,14 @@ export class Highlights extends EventTarget {
     }
   }
 
+  #rangeFor(a) {
+    try {
+      const { index, anchor } = this.reader.view.resolveNavigation(a.cfi)
+      const c = this.reader.view.renderer.getContents().find(x => x.index === index)
+      return c ? anchor(c.doc) : null
+    } catch { return null }
+  }
+
   #indexOf(a) {
     try { return this.reader.view.resolveNavigation(a.cfi)?.index } catch { return -1 }
   }
@@ -130,6 +138,16 @@ export class Highlights extends EventTarget {
         break
       }
       case 'delete': await this.#deleteEditing(false); break
+      case 'share': {
+        const a = this.#editing
+        const p = this.#pending
+        const range = p?.range ?? (a ? this.#rangeFor(a) : null)
+        this.dispatchEvent(new CustomEvent('share', { detail: { text: a?.text ?? p?.text ?? '', range, cfi: a?.cfi ?? p?.cfi } }))
+        this.hidePopover()
+        this.#clearSelection()
+        this.#editing = null
+        break
+      }
       case 'define': this.#define(this.#editing?.text ?? this.#pending?.text ?? ''); break
     }
   }

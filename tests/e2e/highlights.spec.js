@@ -18,6 +18,15 @@ const selectText = page => page.evaluate(() => {
   return range.toString()
 })
 
+/** Open Contents → Notes with the `t` shortcut (retried: key presses can race sheet animations under load). */
+async function openNotes(page) {
+  await expect(async () => {
+    if (!(await page.locator('#sheet-nav').evaluate(el => el.classList.contains('open')))) await page.keyboard.press('t')
+    await expect(page.locator('#sheet-nav')).toHaveClass(/open/, { timeout: 1000 })
+  }).toPass({ timeout: 10_000 })
+  await page.click('#nav-tabs [data-pane="marks"]')
+}
+
 test('highlight with a note, list it, export it, and keep it after reload', async ({ page }) => {
   await openLibrary(page)
   await openStarterBook(page, 'pg-1342')
@@ -30,8 +39,7 @@ test('highlight with a note, list it, export it, and keep it after reload', asyn
   await page.click('#note-save')
   await expect(page.locator('#sheet-note')).not.toHaveClass(/open/)
 
-  await page.keyboard.press('t')
-  await page.click('#nav-tabs [data-pane="marks"]')
+  await openNotes(page)
   const mark = page.locator('#marks-list .mark')
   await expect(mark).toHaveCount(1)
   await expect(mark).toContainText('A famous opening line.')
@@ -41,8 +49,7 @@ test('highlight with a note, list it, export it, and keep it after reload', asyn
 
   await page.reload()
   await expect(page.locator('#status-right')).toContainText('%', { timeout: 20_000 })
-  await page.keyboard.press('t')
-  await page.click('#nav-tabs [data-pane="marks"]')
+  await openNotes(page)
   await expect(page.locator('#marks-list .mark')).toHaveCount(1)
   // the highlight is drawn in the overlay
   await page.keyboard.press('Escape')

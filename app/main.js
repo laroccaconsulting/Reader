@@ -17,6 +17,10 @@ import { $, $$, esc, html, raw, toast, Sheet, formatBytes, formatYear, formatDur
 import { registerServiceWorker } from './sw-client.js'
 import * as stats from './stats.js'
 import * as SE from './catalog/standard-ebooks.js'
+import * as PG from './catalog/gutenberg.js'
+import { shareQuote } from './share/share-sheet.js'
+import { parseLink, recordIdFor } from './share/quote-link.js'
+import { relayConfigured } from './net.js'
 
 const state = {
   books: [],
@@ -416,6 +420,7 @@ function renderMarks() {
           <div class="mark-text">${m.text}</div>
           ${m.note ? html`<div class="mark-note">${m.note}</div>` : ''}
         </button>
+        ${m.kind === 'highlight' ? html`<button class="icon-btn" data-share="${m.id}" aria-label="Share quote"><svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></button>` : ''}
         ${m.kind === 'highlight' ? html`<button class="icon-btn" data-note="${m.id}" aria-label="Edit note"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>` : ''}
         <button class="icon-btn" data-del="${m.id}" data-kind="${m.kind}" aria-label="Delete ${m.kind}"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>`)).join('')
@@ -463,6 +468,7 @@ function setupReaderUI() {
   tts = new ReadAloud(reader)
   highlights = new Highlights(reader, { noteSheet: sheets.note, defineSheet: sheets.define })
   highlights.addEventListener('change', () => { if (sheets.nav.isOpen) renderMarks() })
+  highlights.addEventListener('share', e => shareQuote({ record: reader.record, ...e.detail }))
   reader.addEventListener('footnote', e => {
     const { paragraphs, href } = e.detail
     $('#footnote-text').innerHTML = paragraphs.map(p => str(html`<p>${p}</p>`)).join('')
@@ -500,6 +506,12 @@ function setupReaderUI() {
   $('#marks-list').addEventListener('click', e => {
     const del = e.target.closest('[data-del]')
     if (del) { del.dataset.kind === 'highlight' ? highlights.remove(del.dataset.del) : reader.deleteAnnotation(del.dataset.del); return }
+    const share = e.target.closest('[data-share]')
+    if (share) {
+      const h = highlights.list.find(x => x.id === share.dataset.share)
+      if (h) { sheets.nav.close(); shareQuote({ record: reader.record, text: h.text, cfi: h.cfi, range: null }) }
+      return
+    }
     const note = e.target.closest('[data-note]')
     if (note) { sheets.nav.close(); highlights.editNote(note.dataset.note); return }
     const open = e.target.closest('[data-cfi]')
@@ -575,6 +587,8 @@ const currentRoute = () => (location.hash.match(/^#\/(\w+)/)?.[1]) ?? 'library'
 
 async function route() {
   const hash = location.hash || '#/library'
+  const quote = parseLink(hash)
+  if (quote) { await openQuote(quote); return }
   const read = hash.match(/^#\/read\/(.+)$/)
   if (read) {
     await showReader(decodeURIComponent(read[1]))
@@ -590,6 +604,78 @@ async function route() {
   document.title = { library: 'Reader', discover: 'Discover · Reader', settings: 'Settings · Reader' }[name]
   if (name === 'discover') discover.show()
   if (name === 'settings') renderSettings($('#settings-body'), { refreshLibrary, importFiles })
+}
+
+/* ======================================================================
+   Shared quote links  (#/q/<book-ref>?t=…)
+   ====================================================================== */
+
+async function openQuote(quote) {
+  const id = recordIdFor(quote.ref)
+  const rec = id ? await library.getBook(id) : null
+  if (rec?.downloaded) {
+    history.replaceState({ fromApp: false }, '', `#/read/${encodeURIComponent(rec.id)}`)
+    await showReader(rec.id)
+    const found = await reader.goToQuote(quote).catch(() => false)
+    if (!found) toast('Couldn’t find that exact passage in this edition')
+    return
+  }
+  // Landing card for people who don't have the book (yet).
+  history.replaceState(null, '', '#/library')
+  await route()
+  const body = $('#quote-body')
+  body.innerHTML = str(html`
+    <blockquote class="landing-quote">${quote.text}</blockquote>
+    <p class="landing-cite"><strong>${quote.title || 'A public-domain book'}</strong>${quote.author ? html`<br>${quote.author}` : ''}</p>
+    <div class="detail-actions"><button class="btn primary" id="quote-get">Read it free — it’s public domain</button></div>
+    <p class="detail-source">Reader is a free, open-source ereader with no ads and no tracking. The book is downloaded straight from ${quote.ref.startsWith('se:') ? 'Standard Ebooks' : 'Project Gutenberg'} to this device and opens at this passage.</p>`)
+  $('#quote-get').addEventListener('click', async e => {
+    const btn = e.currentTarget
+    btn.disabled = true
+    btn.textContent = 'Getting the book…'
+    try {
+      const recId = await acquireForQuote(quote)
+      sheets.quote.close()
+      await navigate(`#/read/${encodeURIComponent(recId)}`)
+      if (!(await reader.goToQuote(quote))) toast('Couldn’t find that exact passage in this edition')
+    } catch (err) {
+      btn.disabled = false
+      btn.textContent = 'Try again'
+      toast(err.message)
+    }
+  })
+  sheets.quote.open()
+}
+
+/** Download the quoted book: same source if possible, else the Standard Ebooks edition. */
+async function acquireForQuote(quote) {
+  const id = recordIdFor(quote.ref)
+  const existing = await library.getBook(id)
+  if (existing) { await library.ensureDownloaded(id); return id }
+  if (quote.ref.startsWith('se:')) {
+    const path = `/ebooks/${quote.ref.slice(3)}`
+    await library.addRemoteBook({
+      id, title: quote.title || 'Untitled', author: quote.author, format: 'epub', language: 'en',
+      source: { type: 'standardebooks', url: SE.epubUrl(path), page: `https://standardebooks.org${path}` },
+    })
+    return id
+  }
+  const pg = Number(quote.ref.slice(2))
+  if (relayConfigured()) {
+    await library.addRemoteBook({
+      id, title: quote.title || `Gutenberg #${pg}`, author: quote.author, format: 'epub', language: 'en',
+      coverUrl: PG.coverFor(pg),
+      source: { type: 'gutenberg', gutenberg: pg, url: PG.epubFor(pg), page: `https://www.gutenberg.org/ebooks/${pg}`, fileName: `pg${pg}.epub` },
+    })
+    return id
+  }
+  // No relay: look for the same title on Standard Ebooks.
+  if (quote.title) {
+    const { items } = await SE.list({ query: quote.title }).catch(() => ({ items: [] }))
+    const match = items.find(it => norm(it.title) === norm(quote.title))
+    if (match) { await library.addRemoteBook(match); return match.id }
+  }
+  throw new Error('This book comes from Project Gutenberg, which needs a download relay (Settings → Downloads).')
 }
 
 /* ======================================================================
@@ -662,7 +748,7 @@ async function init() {
   applyTheme()
   onChange((_, patch) => { if ('theme' in patch) applyTheme() })
 
-  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote', 'share', 'quote']) sheets[id] = new Sheet($(`#sheet-${id}`))
   $('#sheet-backdrop').addEventListener('click', () => Sheet.closeTop())
 
   // Broken remote cover images fall back to the generated cover underneath.

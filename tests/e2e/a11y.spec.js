@@ -36,4 +36,17 @@ test('reader chrome and sheets have no serious a11y violations', async ({ page }
   await page.click('#toc-btn')
   await page.waitForTimeout(400)
   expect(await audit(page, '#sheet-nav')).toEqual([])
+  await page.keyboard.press('Escape')
+  await page.evaluate(() => {
+    const { doc } = document.querySelector('foliate-view').renderer.getContents()[0]
+    const w = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT)
+    let n
+    while ((n = w.nextNode()) && n.data.trim().length < 60) {}
+    const r = doc.createRange(); r.setStart(n, 0); r.setEnd(n, 30)
+    doc.getSelection().removeAllRanges(); doc.getSelection().addRange(r)
+    doc.dispatchEvent(new Event('selectionchange'))
+  })
+  await page.click('#hl-pop [data-act="share"]')
+  await page.waitForTimeout(500)
+  expect(await audit(page, '#sheet-share')).toEqual([])
 })

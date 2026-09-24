@@ -7,6 +7,7 @@ import * as library from '../library.js'
 import { settings, bookCSS, onChange, marginFraction } from '../settings.js'
 import { $, esc, toast, formatDuration } from '../ui/dom.js'
 import { isNoteRef, loadNote } from './footnotes.js'
+import { locate } from '../share/quote-link.js'
 
 let fontCSSPromise = null
 function fontCSS() {
@@ -182,6 +183,44 @@ export class Reader extends EventTarget {
   goToFraction(f) { return this.view?.goToFraction(f) }
   nextSection() { return this.view?.renderer.nextSection?.() }
   prevSection() { return this.view?.renderer.prevSection?.() }
+
+  /** Jump to a shared quote (text + context, optional CFI hint) and flash it. */
+  async goToQuote(quote) {
+    const { book, view } = this
+    const order = [...book.sections.keys()]
+    try {
+      const hint = quote.cfi ? view.resolveNavigation(quote.cfi)?.index : null
+      if (hint != null && hint >= 0) order.unshift(hint)
+    } catch { /* bad hint */ }
+    for (const index of new Set(order)) {
+      const section = book.sections[index]
+      if (!section?.createDocument) continue
+      const doc = await section.createDocument()
+      const range = locate(doc, quote)
+      if (!range) continue
+      await view.goTo(view.getCFI(index, range))
+      await new Promise(r => setTimeout(r, 120))
+      const shown = view.renderer.getContents().find(c => c.index === index)
+      const live = shown && locate(shown.doc, quote)
+      if (live) this.flash(live)
+      return true
+    }
+    return false
+  }
+
+  flash(range) {
+    const win = range.startContainer.ownerDocument?.defaultView
+    if (!win?.CSS?.highlights || !win.Highlight) return
+    const doc = win.document
+    if (!doc.getElementById('quote-style')) {
+      const style = doc.createElement('style')
+      style.id = 'quote-style'
+      style.textContent = '::highlight(shared-quote) { background-color: rgba(250, 204, 21, .45); }'
+      doc.head.append(style)
+    }
+    win.CSS.highlights.set('shared-quote', new win.Highlight(range))
+    setTimeout(() => { try { win.CSS.highlights.delete('shared-quote') } catch { /* gone */ } }, 9000)
+  }
 
   /* ---------------- chrome ---------------- */
 
