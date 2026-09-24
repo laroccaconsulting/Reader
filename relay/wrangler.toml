@@ -10,4 +10,4 @@ enabled = false
 [vars]
 # Optional: only allow your own Reader site(s) to use the relay, e.g.
 # ALLOWED_ORIGINS = "https://laroccaconsulting.github.io"
-ALLOWED_ORIGINS = ""
+ALLOWED_ORIGINS = "https://laroccaconsulting.github.io"

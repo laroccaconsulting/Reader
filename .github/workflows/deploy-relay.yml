@@ -1,0 +1,29 @@
+name: Deploy relay (Cloudflare Worker)
+
+# Deploys relay/ to Cloudflare Workers. Does nothing until two repository
+# secrets exist (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   token with the "Edit Cloudflare Workers" template
+#   CLOUDFLARE_ACCOUNT_ID  shown on the Workers & Pages overview page
+on:
+  workflow_dispatch:
+  push:
+    paths: ['relay/**', '.github/workflows/deploy-relay.yml']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Cloudflare credentials
+        id: creds
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "No CLOUDFLARE_API_TOKEN secret yet; skipping deploy."; fi
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.ok == 'true'
+      - uses: cloudflare/wrangler-action@v3
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: relay

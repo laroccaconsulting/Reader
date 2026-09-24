@@ -68,22 +68,56 @@ async function tx(store, mode, fn) {
   return result
 }
 
-export const get = (store, key) =>
-  tx(store, 'readonly', s => s ? wrap(s.get(key)) : mem(store).get(key))
+/* Safari (Private Browsing, and some older iOS versions) refuses to store Blob/File
+ * objects in IndexedDB ("Error preparing Blob/File data to be stored in object store").
+ * So Blob fields are stored as { __blob: ArrayBuffer, type, name } and revived on read.
+ * Records written as real Blobs by other browsers still read fine. */
+const BLOB_TAG = '__blob'
 
-export const getAll = store =>
-  tx(store, 'readonly', s => s ? wrap(s.getAll()) : [...mem(store).values()])
+async function encode(value) {
+  if (!value || typeof value !== 'object') return value
+  let out = value
+  for (const [k, v] of Object.entries(value)) {
+    if (typeof Blob !== 'undefined' && v instanceof Blob) {
+      if (out === value) out = { ...value }
+      out[k] = { [BLOB_TAG]: await v.arrayBuffer(), type: v.type, name: v.name ?? null }
+    }
+  }
+  return out
+}
 
-export const put = (store, value) =>
-  tx(store, 'readwrite', s => s ? wrap(s.put(value)) : void mem(store).set(keyOf(store, value), value))
+function decode(value) {
+  if (!value || typeof value !== 'object') return value
+  let out = value
+  for (const [k, v] of Object.entries(value)) {
+    if (v && typeof v === 'object' && v[BLOB_TAG] instanceof ArrayBuffer) {
+      if (out === value) out = { ...value }
+      out[k] = v.name
+        ? new File([v[BLOB_TAG]], v.name, { type: v.type })
+        : new Blob([v[BLOB_TAG]], { type: v.type })
+    }
+  }
+  return out
+}
+
+export const get = async (store, key) =>
+  decode(await tx(store, 'readonly', s => s ? wrap(s.get(key)) : mem(store).get(key)))
+
+export const getAll = async store =>
+  (await tx(store, 'readonly', s => s ? wrap(s.getAll()) : [...mem(store).values()])).map(decode)
+
+export const put = async (store, value) => {
+  const encoded = await encode(value) // must finish before the transaction opens
+  return tx(store, 'readwrite', s => s ? wrap(s.put(encoded)) : void mem(store).set(keyOf(store, value), value))
+}
 
 export const del = (store, key) =>
   tx(store, 'readwrite', s => s ? wrap(s.delete(key)) : void mem(store).delete(key))
 
-export const getAllByIndex = (store, index, value) =>
-  tx(store, 'readonly', s => s
+export const getAllByIndex = async (store, index, value) =>
+  (await tx(store, 'readonly', s => s
     ? wrap(s.index(index).getAll(value))
-    : [...mem(store).values()].filter(v => v[index] === value))
+    : [...mem(store).values()].filter(v => v[index] === value))).map(decode)
 
 export const clear = store =>
   tx(store, 'readwrite', s => s ? wrap(s.clear()) : void mem(store).clear())
