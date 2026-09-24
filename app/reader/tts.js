@@ -4,7 +4,8 @@
  * and turning pages/sections automatically. */
 
 import { settings, update } from '../settings.js'
-import { $, toast } from '../ui/dom.js'
+import { $, html, toast } from '../ui/dom.js'
+import { rankVoices, voiceLabel } from './voices.js'
 
 /** Split an SSML string into [{ mark, text }] chunks. */
 export function ssmlChunks(ssml) {
@@ -44,18 +45,65 @@ export class ReadAloud {
     $('#tts-next').addEventListener('click', () => this.skip(1))
     $('#tts-close').addEventListener('click', () => this.stop())
     $('#tts-rate').addEventListener('click', () => this.#cycleRate())
+    $('#tts-voice').addEventListener('click', () => this.openVoices())
     this.#renderRate()
     reader.addEventListener('close', () => this.stop())
   }
 
+  get lang() { return (this.reader.book?.metadata?.language ?? 'en').toString().slice(0, 2).toLowerCase() }
+
+  /** The chosen voice if it suits the book's language, else the best one available. */
   voice() {
-    const lang = (this.reader.book?.metadata?.language ?? 'en').toString().slice(0, 2).toLowerCase()
-    const voices = speechSynthesis.getVoices()
-    return voices.find(v => v.name === settings.voice)
-      ?? voices.find(v => v.lang?.toLowerCase().startsWith(lang) && v.localService && v.default)
-      ?? voices.find(v => v.lang?.toLowerCase().startsWith(lang) && v.localService)
-      ?? voices.find(v => v.lang?.toLowerCase().startsWith(lang))
-      ?? null
+    const ranked = rankVoices(speechSynthesis.getVoices(), this.lang)
+    return ranked.find(v => v.name === settings.voice) ?? ranked[0] ?? null
+  }
+
+  /* ---- voice picker (sheet opened from the read-aloud bar) ---- */
+
+  voiceSheet = null // set by main.js
+
+  async openVoices() {
+    if (!this.supported || !this.voiceSheet) return
+    let voices = speechSynthesis.getVoices()
+    if (!voices.length) { // Safari/Chrome load the list asynchronously
+      await new Promise(r => { speechSynthesis.addEventListener('voiceschanged', r, { once: true }); setTimeout(r, 1500) })
+      voices = speechSynthesis.getVoices()
+    }
+    const ranked = rankVoices(voices, this.lang)
+    const current = this.voice()?.name
+    const apple = /iPhone|iPad|Macintosh/.test(navigator.userAgent)
+    const hasGood = ranked.some(v => /premium|enhanced/i.test(v.name))
+    $('#voice-body').innerHTML = String(html`
+      ${ranked.length ? html`<ul class="voice-list" role="radiogroup" aria-label="Voices">
+        ${ranked.map(v => {
+          const l = voiceLabel(v)
+          return html`<li><button role="radio" aria-checked="${String(v.name === current)}" data-voice="${v.name}">
+            <span class="voice-check" aria-hidden="true">✓</span>
+            <span class="voice-main"><span class="voice-name">${l.name}</span><span class="voice-sub">${l.region}</span></span>
+            ${l.quality !== 'standard' ? html`<span class="voice-badge">${l.quality === 'premium' ? 'Premium' : 'Enhanced'}</span>` : ''}
+          </button></li>`
+        })}
+      </ul>` : html`<p class="voice-tip">This device has no voices for this book’s language.</p>`}
+      ${apple ? html`<p class="voice-tip">${hasGood ? 'Want more voices?' : 'For much more natural voices,'} on iPhone or iPad open <strong>Settings → Accessibility → Spoken Content → Voices</strong>, choose <strong>English</strong> (or the book’s language), and download one marked <strong>Enhanced</strong> or <strong>Premium</strong>, such as Ava, Zoe or Evan. Then reopen Read Free and pick it here.</p>`
+        : html`<p class="voice-tip">Voices come from your device. You can add more in your system’s speech or accessibility settings.</p>`}`)
+    $('#voice-body').onclick = e => {
+      const btn = e.target.closest('[data-voice]')
+      if (!btn) return
+      update({ voice: btn.dataset.voice })
+      for (const b of $('#voice-body').querySelectorAll('[data-voice]')) b.setAttribute('aria-checked', String(b === btn))
+      if (this.playing) { this.pause(); this.play() } // continue the book in the new voice
+      else this.#sample()
+    }
+    this.voiceSheet.open()
+  }
+
+  #sample() {
+    const u = new SpeechSynthesisUtterance(this.chunks[this.index]?.text?.slice(0, 160) || 'It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.')
+    const voice = this.voice()
+    if (voice) { u.voice = voice; u.lang = voice.lang }
+    u.rate = settings.ttsRate ?? 1
+    speechSynthesis.cancel()
+    speechSynthesis.speak(u)
   }
 
   async start() {

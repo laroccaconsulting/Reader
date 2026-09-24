@@ -490,6 +490,7 @@ function setupReaderUI() {
   reader = new Reader($('#reader'))
   rsvp = new RSVP(reader)
   tts = new ReadAloud(reader)
+  tts.voiceSheet = sheets.voice
   autopilot = new Autopilot(reader)
   // Audiobook read-along loads with the first book (keeps the startup payload small).
   reader.addEventListener('open', async () => {
@@ -788,7 +789,7 @@ async function init() {
   applyTheme()
   onChange((_, patch) => { if ('theme' in patch) applyTheme() })
 
-  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote', 'share', 'quote', 'install']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote', 'share', 'quote', 'install', 'voice']) sheets[id] = new Sheet($(`#sheet-${id}`))
   installer.setGuideSheet(sheets.install)
   $('#sheet-backdrop').addEventListener('click', () => Sheet.closeTop())
 

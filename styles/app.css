@@ -553,6 +553,17 @@ input[type="range"] { accent-color: var(--accent); width: 100%; min-height: 32px
 .tts-bar .tts-play { color: var(--accent); }
 .tts-bar .i-pause, .tts-bar.playing .i-play { display: none; }
 .tts-bar.playing .i-pause { display: block; }
+.voice-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 2px; }
+.voice-list button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; text-align: left; color: var(--text); }
+.voice-list button:hover { background: var(--accent-dim); }
+.voice-list button[aria-checked="true"] { background: var(--accent-dim); }
+.voice-list .voice-main { flex: 1; min-width: 0; }
+.voice-list .voice-name { display: block; font-weight: 600; font-size: 16px; }
+.voice-list .voice-sub { display: block; font-size: 13px; color: var(--text-3); }
+.voice-badge { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 7px; border-radius: 6px; background: var(--accent); color: var(--on-accent); }
+.voice-check { flex: none; width: 20px; color: var(--accent-text); font-weight: 700; visibility: hidden; }
+.voice-list button[aria-checked="true"] .voice-check { visibility: visible; }
+.voice-tip { font-size: 14px; line-height: 1.5; color: var(--text-2); padding: 12px 14px; border-radius: 12px; background: var(--surface-2, var(--accent-dim)); }
 .tts-rate { min-width: 44px; height: 36px; border-radius: 10px; font-weight: 650; font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
 
 .audio-bar {

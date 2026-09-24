@@ -71,3 +71,22 @@ test('sync: a mark near the chapter start measures the introduction', () => {
   assert.ok(Math.abs(lead - 35) < 1, String(lead))
   assert.equal(leadFromAnchor(span, { t: 300, f: 0.15 }), null)
 })
+
+import { rankVoices, voiceLabel } from '../../app/reader/voices.js'
+
+test('voices: best quality first, joke voices hidden, other languages left out', () => {
+  const voices = [
+    { name: 'Bubbles', lang: 'en-US', localService: true },
+    { name: 'Samantha', lang: 'en-US', localService: true, default: true },
+    { name: 'Ava (Premium)', lang: 'en-US', localService: true },
+    { name: 'Daniel (Enhanced)', lang: 'en-GB', localService: true },
+    { name: 'Grandma', lang: 'en-US', localService: true },
+    { name: 'Amélie', lang: 'fr-CA', localService: true },
+  ]
+  assert.deepEqual(rankVoices(voices, 'en').map(v => v.name), ['Ava (Premium)', 'Daniel (Enhanced)', 'Samantha', 'Grandma'])
+  assert.deepEqual(rankVoices(voices, 'fr').map(v => v.name), ['Amélie'])
+  const label = voiceLabel({ name: 'Ava (Premium)', lang: 'en-US' })
+  assert.equal(label.name, 'Ava')
+  assert.equal(label.quality, 'premium')
+  assert.match(label.region, /English/)
+})

@@ -165,6 +165,7 @@
       </button>
       <button class="icon-btn" id="tts-next" aria-label="Next sentence"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l9 7-9 7z"/></svg></button>
       <button class="tts-rate" id="tts-rate" aria-label="Speaking rate">1×</button>
+      <button class="icon-btn" id="tts-voice" aria-label="Choose a voice" title="Voice"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.8-3.6 3.2-5.5 6-5.5s5.2 1.9 6 5.5M16.5 6.5a4 4 0 010 5M19 4a7.5 7.5 0 010 10"/></svg></button>
       <button class="icon-btn" id="tts-close" aria-label="Stop reading aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
 
@@ -260,6 +261,15 @@
         <button class="btn danger" id="note-delete">Delete highlight</button>
       </div>
     </div>
+  </div>
+
+  <div class="sheet" id="sheet-voice" role="dialog" aria-modal="true" aria-labelledby="voice-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="voice-title">Voice</h2>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" id="voice-body"></div>
   </div>
 
   <div class="sheet" id="sheet-install" role="dialog" aria-modal="true" aria-labelledby="install-title" aria-hidden="true" tabindex="-1">
