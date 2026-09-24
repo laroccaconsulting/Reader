@@ -3,3 +3,4 @@ test-results/
 playwright-report/
 .smoke/
 .wrangler/
+__pycache__/
