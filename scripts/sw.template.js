@@ -16,18 +16,28 @@ self.addEventListener('install', event => {
       const request = new Request(url, { cache: 'reload' })
       const response = await fetch(request)
       if (!response.ok) throw new Error(`${url}: ${response.status}`)
-      const actual = hex(await crypto.subtle.digest('SHA-256', await response.clone().arrayBuffer()))
-      if (actual !== expected) throw new Error(`${url} is from a different version`)
-      return [request, response]
+      const body = await response.arrayBuffer()
+      if (hex(await crypto.subtle.digest('SHA-256', body)) !== expected) throw new Error(`${url} is from a different version`)
+      // Store a fresh response: some hosts redirect (e.g. /index.html -> /), and a
+      // redirected response can't answer a page load (the browser shows ERR_FAILED).
+      return [request, new Response(body, { status: 200, headers: response.headers })]
     }))
     const cache = await caches.open(CACHE)
     await Promise.all(files.map(([request, response]) => cache.put(request, response)))
   })())
   // First install activates immediately; updates wait for the user to accept (see sw-client.js).
-  // The legacy 1.x worker ("reader-vN" caches) has no update prompt, so replace it right away.
+  // Take over right away, though, when the current version can't show that prompt:
+  // the legacy 1.x worker ("reader-vN" caches) has none, and versions that cached a
+  // redirected page can't open the app at all.
   event.waitUntil((async () => {
-    const legacy = (await caches.keys()).some(k => /^reader-v\d+$/.test(k))
-    if (!self.registration.active || legacy) await self.skipWaiting()
+    const keys = await caches.keys()
+    const legacy = keys.some(k => /^reader-v\d+$/.test(k))
+    let broken = false
+    for (const k of keys.filter(k => k.startsWith('reader-shell-') && k !== CACHE)) {
+      const cache = await caches.open(k)
+      for (const page of ['./', './index.html']) if ((await cache.match(page))?.redirected) broken = true
+    }
+    if (!self.registration.active || legacy || broken) await self.skipWaiting()
   })())
 })
 
@@ -77,7 +87,7 @@ self.addEventListener('fetch', event => {
     if (rest && rest !== 'index.html') return
     // App navigations get the cached shell (the app routes with #hash).
     event.respondWith((async () => {
-      const cached = await caches.match('./index.html', { cacheName: CACHE })
+      const cached = await caches.match('./', { cacheName: CACHE }) ?? await caches.match('./index.html', { cacheName: CACHE })
       if (cached) return cached
       return fetch(request)
     })())

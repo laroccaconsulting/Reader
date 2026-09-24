@@ -32,6 +32,7 @@ for (const f of include.filter(f => f !== 'app/version.js').sort()) {
   hash.update(f)
   hash.update(readFileSync(join(root, f)))
 }
+hash.update(readFileSync(join(root, 'scripts/sw.template.js'))) // a worker change is a new version too
 const digest = hash.digest('hex').slice(0, 10)
 const version = `${pkg.version}+${digest}`
 

@@ -47,3 +47,19 @@ test('readfree.app/q/… quote links open straight in the installed app, even of
   await expect(page.locator('.landing-cite')).toContainText('Pride and Prejudice')
   await context.setOffline(false)
 })
+
+test('hosts that redirect /index.html to / (like Cloudflare) still open offline and on every visit', async ({ page, context }) => {
+  await context.route('**/index.html', route => route.fulfill({ status: 307, headers: { Location: '/' } }))
+  await page.goto('./')
+  await expect(page.locator('#book-grid .book-card').first()).toBeVisible()
+  await page.evaluate(async () => { await navigator.serviceWorker.ready })
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
+  for (let i = 0; i < 2; i++) {
+    await page.reload()
+    await expect(page.locator('#book-grid .book-card').first()).toBeVisible()
+  }
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.locator('#book-grid .book-card').first()).toBeVisible()
+  await context.setOffline(false)
+})
