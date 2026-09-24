@@ -6,6 +6,7 @@ import * as db from '../db.js'
 import * as library from '../library.js'
 import { settings, bookCSS, onChange, marginFraction } from '../settings.js'
 import { $, esc, toast, formatDuration } from '../ui/dom.js'
+import { isNoteRef, loadNote } from './footnotes.js'
 
 let fontCSSPromise = null
 function fontCSS() {
@@ -55,6 +56,17 @@ export class Reader extends EventTarget {
 
     view.addEventListener('relocate', e => this.#onRelocate(e.detail))
     view.addEventListener('load', e => this.#onLoad(e.detail))
+    view.addEventListener('link', e => {
+      const { a, href } = e.detail
+      if (!isNoteRef(a)) return
+      e.preventDefault()
+      this.suppressTap = Date.now()
+      loadNote(view.book, href)
+        .then(note => note?.paragraphs.length
+          ? this.dispatchEvent(new CustomEvent('footnote', { detail: note }))
+          : view.goTo(href))
+        .catch(() => view.goTo(href))
+    })
     view.addEventListener('external-link', e => {
       e.preventDefault()
       const a = document.createElement('a')

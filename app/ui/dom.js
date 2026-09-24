@@ -92,7 +92,9 @@ export class Sheet {
     Sheet.stack = Sheet.stack.filter(s => s !== this)
     if (!Sheet.stack.length) $('#sheet-backdrop').classList.remove('visible')
     this.onClose?.()
-    this.returnFocus?.focus?.({ preventScroll: true })
+    if (this.el.contains(document.activeElement)) document.activeElement.blur()
+    const back = this.returnFocus
+    if (back?.isConnected && back.offsetParent !== null && !back.closest('[hidden]')) back.focus({ preventScroll: true })
   }
   static closeTop() {
     const top = Sheet.stack[Sheet.stack.length - 1]

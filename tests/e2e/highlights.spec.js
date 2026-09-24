@@ -5,8 +5,9 @@ import { openLibrary, openStarterBook } from './helpers.js'
 const selectText = page => page.evaluate(() => {
   const view = document.querySelector('foliate-view')
   const { doc } = view.renderer.getContents()[0]
-  const p = [...doc.querySelectorAll('p')].find(x => x.textContent.length > 80)
-  const node = p.firstChild
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT)
+  let node
+  while ((node = walker.nextNode()) && node.data.trim().length < 60) { /* find a long text node */ }
   const range = doc.createRange()
   range.setStart(node, 0)
   range.setEnd(node, 40)
@@ -27,6 +28,7 @@ test('highlight with a note, list it, export it, and keep it after reload', asyn
   await expect(page.locator('#note-quote')).toHaveText(text.trim())
   await page.fill('#note-text', 'A famous opening line.')
   await page.click('#note-save')
+  await expect(page.locator('#sheet-note')).not.toHaveClass(/open/)
 
   await page.keyboard.press('t')
   await page.click('#nav-tabs [data-pane="marks"]')

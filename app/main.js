@@ -463,6 +463,12 @@ function setupReaderUI() {
   tts = new ReadAloud(reader)
   highlights = new Highlights(reader, { noteSheet: sheets.note, defineSheet: sheets.define })
   highlights.addEventListener('change', () => { if (sheets.nav.isOpen) renderMarks() })
+  reader.addEventListener('footnote', e => {
+    const { paragraphs, href } = e.detail
+    $('#footnote-text').innerHTML = paragraphs.map(p => str(html`<p>${p}</p>`)).join('')
+    $('#footnote-go').onclick = () => { sheets.footnote.close(); reader.goTo(href) }
+    sheets.footnote.open()
+  })
   reader.addEventListener('tap', e => { if (highlights.popoverOpen) { e.preventDefault(); highlights.hidePopover() } })
   $('#listen-btn').hidden = !tts.supported
   $('#listen-btn').addEventListener('click', () => { tts.active ? tts.stop() : tts.start(); reader.hideChrome() })
@@ -623,7 +629,7 @@ function setupLibraryUI() {
   let pressTimer = null, pressed = null, longPressed = false
   scroll.addEventListener('pointerdown', e => {
     const b = e.target.closest('.book-open')
-    if (!b) return
+    if (!b || e.button !== 0) return
     pressed = b
     longPressed = false
     pressTimer = setTimeout(async () => {
@@ -640,6 +646,8 @@ function setupLibraryUI() {
     const b = e.target.closest('.book-open')
     if (!b) return
     e.preventDefault()
+    cancel()
+    if (longPressed) return // touch long-press already opened the details
     const rec = state.books.find(x => x.id === b.dataset.id)
     if (rec) showBookDetails(rec)
   })
@@ -654,7 +662,7 @@ async function init() {
   applyTheme()
   onChange((_, patch) => { if ('theme' in patch) applyTheme() })
 
-  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define', 'footnote']) sheets[id] = new Sheet($(`#sheet-${id}`))
   $('#sheet-backdrop').addEventListener('click', () => Sheet.closeTop())
 
   // Broken remote cover images fall back to the generated cover underneath.

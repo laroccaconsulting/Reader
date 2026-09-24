@@ -104,3 +104,16 @@ test('importing an EPUB adds it with its cover and opens it; book scripts are bl
   await expect.poll(() => readerText(page)).toContain('bright cold day')
   expect(await page.evaluate(() => window.__epubScriptRan)).toBeUndefined()
 })
+
+test('tapping a note reference shows the endnote in place', async ({ page }) => {
+  await openLibrary(page)
+  await page.setInputFiles('#file-input', { name: 'sample.epub', mimeType: 'application/epub+zip', buffer: fixture('sample.epub') })
+  await page.locator('.book-open[aria-label^="A Test Voyage"]').click()
+  await expect.poll(() => readerText(page)).toContain('bright cold day')
+  await page.evaluate(() => {
+    const { doc } = document.querySelector('foliate-view').renderer.getContents()[0]
+    doc.querySelector('a[href*="notes.xhtml"]').click()
+  })
+  await expect(page.locator('#sheet-footnote')).toHaveClass(/open/)
+  await expect(page.locator('#footnote-text')).toHaveText('Lighthouses were once kept by hand.')
+})

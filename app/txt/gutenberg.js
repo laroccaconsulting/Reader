@@ -377,10 +377,20 @@ export function escHtml(s) {
     .replace(/"/g, '&quot;')
 }
 
-/** Gutenberg plain-text markup (_italic_, =bold=) on an escaped string. May span lines. */
+/** Gutenberg plain-text markup on an escaped string. Underscores at word
+ *  boundaries *toggle* italics (they often wrap long passages with roman
+ *  titles inside), so pair them in order and close any left open. */
 function inlineMarkup(text) {
-  return escHtml(text)
-    .replace(/(^|[^\w])_([^_]{1,400}?)_(?=[^\w]|$)/g, '$1<em>$2</em>')
+  const parts = escHtml(text).split(/(?<![\p{L}\p{N}])_|_(?![\p{L}\p{N}])/u)
+  let out = parts[0]
+  let open = false
+  for (let i = 1; i < parts.length; i++) {
+    out += (open ? '</em>' : '<em>') + parts[i]
+    open = !open
+  }
+  if (open) out += '</em>'
+  return out
+    .replace(/<em>(\s*)<\/em>/g, '$1')
     .replace(/(^|\s)=([^=\n]+?)=(?=\s|[.,;:!?]|$)/g, '$1<strong>$2</strong>')
 }
 

@@ -55,6 +55,13 @@ test('illustration captions are removed and multi-line italics kept', () => {
   assert.match(blocksToHtml('_To J. Comyns Carr\nin acknowledgment_'), /<em>To J\. Comyns Carr<br>in acknowledgment<\/em>/)
 })
 
+test('underscores toggle italics, even around roman titles', () => {
+  const html = blocksToHtml('_Walt Whitman has somewhere a fine and just distinction, humour of_ Northanger Abbey, _its completeness, finish._')
+  assert.equal(html, '<p><em>Walt Whitman has somewhere a fine and just distinction, humour of</em> Northanger Abbey, <em>its completeness, finish.</em></p>')
+  assert.doesNotMatch(load(1342).sections.map(s => s.html).join(''), /(?<![\w])_|_(?![\w])/)
+  assert.equal(blocksToHtml('snake_case stays'), '<p>snake_case stays</p>')
+})
+
 test('contents lists are not mistaken for chapters (order is preserved)', () => {
   const moby = labels(load(2701))
   assert.equal(moby[1], 'Etymology.')

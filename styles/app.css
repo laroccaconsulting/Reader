@@ -551,6 +551,8 @@ input[type="range"] { accent-color: var(--accent); width: 100%; min-height: 32px
 .hl-pop svg { width: 20px; height: 20px; }
 .hl-sep { width: 1px; height: 24px; background: var(--border); margin: 0 3px; }
 .hl-pop:not(.existing) .hl-del, .hl-pop:not(.word) .hl-define { display: none; }
+.footnote-text { font-family: var(--book-font); font-size: 16px; line-height: 1.55; margin-bottom: 8px; }
+.footnote-text p + p { margin-top: .6em; }
 .define-word { font-family: var(--book-font); font-size: 24px; font-weight: 650; margin-bottom: 8px; }
 .define-entry { margin: 10px 0 14px; }
 .define-pos { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 4px; }
