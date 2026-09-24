@@ -4,12 +4,7 @@ _Evaluation of `claude/offline-ereader-app-k5Pz3` @ `8d2cdc6`, September 2026._
 
 **Vision:** the best fully offline, installable, open-source ereader on the web. It connects directly and cleanly to free public-domain libraries. No ads, no tracking and no accounts, ever.
 
-> **Status (Milestone A, shipped):** rebuilt on foliate-js with EPUB/TXT/FB2/MOBI/CBZ support, CFI-based
-> progress, a new contents-aware text parser (all 51 starter books pass the regression corpus), Standard Ebooks and
-> Project Gutenberg in Discover, local import, bookmarks, in-book search, read-aloud, RSVP v2, backup/restore,
-> a hashed service-worker precache, a CSP, GPL-3.0 licence, and CI with unit plus Playwright (mobile, desktop and offline) tests.
-> CORS findings from CI: Standard Ebooks, Gutenberg OPDS, Internet Archive, Open Library and Wikisource allow
-> browser access; Gutenberg *files* do not (on any mirror), hence the optional `relay/`.
+> **Status: shipped (September 2026).** See §8 for what was built and what's still open.
 
 ---
 
@@ -182,3 +177,29 @@ Sizes: S ≈ ≤1 day, M ≈ 2–4 days, L ≈ 1–2 weeks (single developer).
 ## 7. Suggested next step
 
 Start **Phase 0** on this branch. It is small, fixes visible bugs for readers today, and gives us the regression corpus (P1.5) to protect the parser while the EPUB engine lands.
+
+---
+
+## 8. Progress log
+
+| Roadmap item | Status |
+|---|---|
+| Phase 0: bugs B1–B10 | Done. Parser rewritten (contents-aware, regression corpus over all 51 books), single key dispatcher, service worker rebuilt, keyboard-accessible cards, opt-in bulk download, `data/starter.json`, workflow fixed |
+| P1.1 tooling and CI | Done without a bundler (plain ES modules). CI runs the generated-file check, a perf budget, unit tests, and Playwright (mobile + desktop) incl. offline, a11y, migration and share-target tests |
+| P1.2 service worker | Done: content-hashed precache, update prompt, replaces the 1.x worker |
+| P1.3 / P1.4 storage and locators | Done: IndexedDB stores, persistence request, CFI progress, 1.x data migration |
+| P1.6 CORS spike | Done. Verified in CI: Standard Ebooks, Gutenberg OPDS and Wiktionary allow direct access. Gutenberg files (every mirror) and Internet Archive files don't |
+| P1.7 CSP | Done: e2e asserts zero third-party requests on cold start and that in-book scripts can't run |
+| P2.1–P2.5 reading engine | Done: foliate-js paginated/scrolled, 1–2 columns, imports (picker, drag and drop, file handlers, share target), TXT adapter, Literata/Atkinson/OpenDyslexic, generated and real covers |
+| P3.1 / P3.2 Discover and OPDS | Done: Standard Ebooks, Project Gutenberg, any OPDS 1/2 catalog. Daily live check against the real services |
+| P3.3 source preference | Partial: bundled texts offer an upgrade to the Standard Ebooks edition. Gutenberg results point to Standard Ebooks when there's no relay |
+| P3.4 download manager | Partial: per-book progress, bulk starter download, offload and remove. No pause/resume |
+| P3.5 starter shelf off git | Not done: `books/` still in the repo (it works, and history already contains it) |
+| P4.1–P4.6 reading tools | Done: highlights and notes with Markdown export, search, read-aloud, RSVP v2, Define (Wiktionary, cached), footnote popups, reading stats |
+| P5.1 accessibility | Done for automated checks (axe, WCAG 2.2 AA, 3 themes). A manual screen-reader pass is still recommended |
+| P5.2 i18n | Not started |
+| P5.3 backup and sync | Backup/restore done. Sync not started |
+| P5.4 performance | Startup 85 KB gzip (budget 110 KB), enforced in CI |
+
+**Needs you:** deploying the optional Gutenberg relay (`relay/README.md`, about 5 minutes on a free Cloudflare account),
+and a manual pass on a real iPhone/Android (install to home screen, read aloud with system voices, share-to-app).
