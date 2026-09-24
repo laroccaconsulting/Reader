@@ -95,3 +95,47 @@ test('scroll layout: text glides, and holding pauses it', async ({ page }) => {
   await page.mouse.up()
   await expect.poll(pos, { timeout: 5000 }).toBeGreaterThan(held)
 })
+
+/** Rects (page coordinates) of every visible line of text in the reader. */
+const textLines = page => page.evaluate(() => {
+  const { renderer } = document.querySelector('foliate-view')
+  const { doc } = renderer.getContents()[0]
+  const frame = doc.defaultView.frameElement.getBoundingClientRect()
+  const stage = document.querySelector('#reader-stage').getBoundingClientRect()
+  const range = doc.createRange()
+  range.selectNodeContents(doc.body)
+  return [...range.getClientRects()]
+    .map(r => ({ top: frame.top + r.top, bottom: frame.top + r.bottom, left: frame.left + r.left, right: frame.left + r.right }))
+    // clip to the reading area: text outside it is hidden by the renderer
+    .map(r => ({ top: Math.max(r.top, stage.top), bottom: Math.min(r.bottom, stage.bottom), left: Math.max(r.left, stage.left), right: Math.min(r.right, stage.right) }))
+    .filter(r => r.bottom - r.top > 4 && r.right > r.left)
+})
+
+const overlaps = (a, lines) => lines.some(l => a.x < l.right && a.x + a.width > l.left && a.y < l.bottom && a.y + a.height > l.top)
+
+for (const flow of ['paginated', 'scrolled']) {
+  test(`controls never cover the text (${flow})`, async ({ page }) => {
+    await openLibrary(page)
+    await page.evaluate(async f => (await import('./app/settings.js')).update({ flow: f, autoWpm: 120 }), flow)
+    await openStarterBook(page, 'pg-1342')
+    await page.waitForTimeout(800)
+    await page.keyboard.press('a')
+    await page.keyboard.press('ArrowUp') // shows the pill
+    await page.waitForTimeout(600)
+    const pill = await page.locator('#auto-pill').boundingBox()
+    expect(overlaps(pill, await textLines(page))).toBe(false)
+
+    const c = await centre(page)
+    await page.mouse.move(c.x, c.y)
+    await page.mouse.down()
+    await page.waitForTimeout(700)
+    await expect(page.locator('#auto-status')).toBeVisible()
+    const chip = await page.locator('#auto-status').boundingBox()
+    const lines = await textLines(page)
+    expect(lines.length).toBeGreaterThan(5)
+    expect(overlaps(chip, lines)).toBe(false)
+    const pillNow = await page.locator('#auto-pill').boundingBox()
+    if (await page.locator('#auto-pill').evaluate(el => el.classList.contains('visible'))) expect(overlaps(pillNow, lines)).toBe(false)
+    await page.mouse.up()
+  })
+}

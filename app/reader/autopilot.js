@@ -109,7 +109,7 @@ export class Autopilot extends EventTarget {
     this.active = false
     cancelAnimationFrame(this.#frame)
     this.#setNoSelect(false)
-    this.reader.root.classList.remove('autopilot', 'auto-held')
+    this.reader.root.classList.remove('autopilot', 'auto-held', 'auto-pill-on')
     this.ui.hidden = true
     this.dispatchEvent(new Event('stop'))
   }
@@ -374,8 +374,8 @@ export class Autopilot extends EventTarget {
     this.ui.classList.toggle('held', this.held)
     $('#auto-toggle', this.ui).setAttribute('aria-label', this.paused ? 'Resume autopilot' : 'Pause autopilot')
     this.status.textContent = this.held
-      ? (this.paginated ? 'Holding — let go to turn the page' : 'Holding')
-      : this.paused ? 'Paused — tap the middle to continue' : ''
+      ? (this.paginated ? 'Holding · let go to turn' : 'Holding')
+      : this.paused ? 'Paused · tap the middle to continue' : ''
   }
 
   #renderBar() {
@@ -386,9 +386,12 @@ export class Autopilot extends EventTarget {
 
   #showPill(sticky = false) {
     this.pill.classList.add('visible')
+    this.reader.root.classList.add('auto-pill-on')
     clearTimeout(this.#fadeTimer)
     if (!sticky) this.#fadeTimer = setTimeout(() => {
-      if (!this.paused && !this.held) this.pill.classList.remove('visible')
+      if (this.paused || this.held) return
+      this.pill.classList.remove('visible')
+      this.reader.root.classList.remove('auto-pill-on')
     }, 2600)
   }
 
