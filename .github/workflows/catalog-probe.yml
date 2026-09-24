@@ -7,7 +7,7 @@ on:
   schedule:
     - cron: '17 6 * * *'
   push:
-    paths: ['app/catalog/**', 'app/reader/define.js', 'tests/live/**']
+    paths: ['app/catalog/**', 'app/audio/**', 'app/reader/define.js', 'tests/live/**']
 
 jobs:
   live:
