@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opds="http://opds-spec.org/2010/catalog">
+<id>http://www.gutenberg.org/ebooks/search.opds/?query=frankenstein</id>
+<title>Books: frankenstein</title>
+<entry><id>https://www.gutenberg.org/ebooks/authors/search.opds/?query=frankenstein</id><title>Authors</title><content type="text">One author name matches your search.</content></entry>
+<entry><id>https://www.gutenberg.org/ebooks/84.opds</id><title>Frankenstein; or, the modern prometheus</title><content type="text">Mary Wollstonecraft Shelley</content>
+<link type="application/atom+xml;profile=opds-catalog" rel="subsection" href="/ebooks/84.opds"/></entry>
+<entry><id>https://www.gutenberg.org/ebooks/41445.opds</id><title>Frankenstein; Or, The Modern Prometheus</title><content type="text">Mary Wollstonecraft Shelley</content></entry>
+</feed>

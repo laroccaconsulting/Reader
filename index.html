@@ -2,358 +2,263 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-  <!-- PWA / iOS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Privacy by construction: no third-party scripts can ever run. Books render in
+       blob: iframes that inherit this policy, so scripts inside EPUBs are blocked too. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob:; img-src 'self' blob: data: https:; font-src 'self' blob: data:; media-src 'self' blob: data:; connect-src 'self' https:; frame-src 'self' blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#FAFAF8">
+  <meta name="color-scheme" content="light dark">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Reader">
-  <link rel="apple-touch-icon" href="icons/icon.svg">
-
-  <!-- Web App Manifest -->
+  <meta name="description" content="A free, open-source, fully offline ereader with direct access to public-domain libraries. No ads, no tracking, ever.">
+  <title>Reader</title>
   <link rel="manifest" href="manifest.json">
-
-  <title>Reader — Classic Books</title>
-  <meta name="description" content="A beautiful offline ereader with 50 classic books from Project Gutenberg.">
-
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles/fonts.css">
+  <link rel="stylesheet" href="styles/app.css">
+  <script src="app/boot-theme.js"></script>
+  <script type="module" src="app/main.js"></script>
 </head>
 <body>
-
 <div id="app">
 
-  <!-- ================================================
-       LIBRARY VIEW
-       ============================================== -->
-  <div id="library-view" class="view">
-
-    <div class="library-header">
-      <div class="library-title-row">
-        <h1>Library</h1>
-        <div class="header-actions">
-          <button class="icon-btn" id="download-all-btn" title="Download all books for offline reading" aria-label="Download all books">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-              <path d="M12 12v6m0 0l-2-2m2 2l2-2"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Search -->
-      <div class="search-wrapper">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-        </svg>
-        <input type="search" id="search-input" placeholder="Search books or authors…" autocomplete="off" autocorrect="off" spellcheck="false">
-      </div>
-
-      <!-- Genre filters -->
-      <div class="genre-filters" id="genre-filters" role="group" aria-label="Filter by genre"></div>
-    </div>
-
-    <!-- Download progress bar -->
-    <div class="download-bar" id="download-bar" role="status" aria-live="polite">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M12 2v10m0 0l-3-3m3 3l3-3M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>
-      </svg>
-      <div class="download-bar-fill">
-        <div class="download-bar-fill-inner" id="dl-fill" style="width:0%"></div>
-      </div>
-      <span id="dl-label">Downloading library…</span>
-    </div>
-
-    <!-- Book grid -->
-    <div id="book-grid" role="list" aria-label="Books"></div>
-
-  </div><!-- /library-view -->
-
-
-  <!-- ================================================
-       READER VIEW
-       ============================================== -->
-  <div id="reader-view" class="view hidden">
-
-    <!-- Header -->
-    <header class="reader-header" id="reader-header">
-      <button class="icon-btn" id="back-btn" aria-label="Back to library">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
-      </button>
-
-      <div class="reader-header-title">
-        <div class="title"></div>
-        <div class="author"></div>
-      </div>
-
-      <div class="reader-header-actions">
-        <button class="icon-btn" id="rsvp-btn" aria-label="Speed read (RSVP)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
+  <!-- ============================ LIBRARY ============================ -->
+  <section id="library" class="screen" aria-labelledby="library-title" data-screen="library">
+    <header class="topbar">
+      <h1 id="library-title">Library</h1>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="import-btn" aria-label="Import books from files" title="Import EPUB, TXT, FB2, MOBI or CBZ">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M4 14v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>
         </button>
-        <button class="icon-btn" id="bookmarks-btn" aria-label="Bookmarks">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-          </svg>
-        </button>
-        <button class="icon-btn" id="bookmark-btn" aria-label="Bookmark this chapter">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-          </svg>
-        </button>
-        <button class="icon-btn" id="toc-btn" aria-label="Table of contents">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
-          </svg>
-        </button>
-        <button class="icon-btn" id="settings-btn" aria-label="Reading settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-          </svg>
+        <button class="icon-btn" id="sort-btn" aria-label="Sort books" title="Sort">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16m0 0l-3-3m3 3l3-3M17 20V4m0 0l-3 3m3-3l3 3"/></svg>
         </button>
       </div>
+      <input type="file" id="file-input" accept=".epub,.txt,.fb2,.fbz,.mobi,.azw3,.azw,.cbz,application/epub+zip,text/plain" multiple hidden>
     </header>
 
-    <!-- Reading progress -->
-    <div class="reader-progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100">
-      <div class="reader-progress-fill" id="reader-progress-fill"></div>
-    </div>
+    <div class="scroll" id="library-scroll">
+      <div id="continue-slot"></div>
+      <div id="banner-slot"></div>
 
-    <!-- Scrollable text -->
-    <div id="reader-content">
-      <div class="reader-inner" id="reader-inner"></div>
-    </div>
+      <div class="library-tools">
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="library-search" placeholder="Search your library" autocomplete="off" spellcheck="false" aria-label="Search your library">
+        </label>
+        <div class="chips" id="library-filters" role="radiogroup" aria-label="Filter books">
+          <button class="chip active" data-filter="all" role="radio" aria-checked="true">All</button>
+          <button class="chip" data-filter="reading" role="radio" aria-checked="false">Reading</button>
+          <button class="chip" data-filter="unread" role="radio" aria-checked="false">Not started</button>
+          <button class="chip" data-filter="finished" role="radio" aria-checked="false">Finished</button>
+          <button class="chip" data-filter="offline" role="radio" aria-checked="false">On device</button>
+        </div>
+      </div>
 
-    <!-- Footer -->
-    <footer class="reader-footer">
-      <span id="footer-chapter"></span>
-      <span id="footer-time"></span>
+      <div id="book-grid" class="book-grid" role="list" aria-label="Books"></div>
+      <div id="library-empty" class="empty" hidden></div>
+    </div>
+  </section>
+
+  <!-- ============================ DISCOVER ============================ -->
+  <section id="discover" class="screen" aria-labelledby="discover-title" data-screen="discover" hidden>
+    <header class="topbar">
+      <h1 id="discover-title">Discover</h1>
+    </header>
+    <div class="scroll" id="discover-scroll">
+      <div class="discover-tools">
+        <div class="segmented" id="source-tabs" role="tablist" aria-label="Library source"></div>
+        <form class="search" id="discover-form" role="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="discover-search" placeholder="Search titles, authors, subjects" autocomplete="off" spellcheck="false" aria-label="Search the catalog" enterkeyhint="search">
+        </form>
+        <p class="source-note" id="source-note"></p>
+      </div>
+      <div id="discover-results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ============================ SETTINGS ============================ -->
+  <section id="settings" class="screen" aria-labelledby="settings-title" data-screen="settings" hidden>
+    <header class="topbar">
+      <h1 id="settings-title">Settings</h1>
+    </header>
+    <div class="scroll" id="settings-body"></div>
+  </section>
+
+  <!-- ============================ TAB BAR ============================ -->
+  <nav id="tabbar" aria-label="Main">
+    <a href="#/library" data-tab="library" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 012-2h13v17H6.5A2.5 2.5 0 004 22.5 2.5 2.5 0 016.5 20H19"/></svg>
+      <span>Library</span>
+    </a>
+    <a href="#/discover" data-tab="discover">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>
+      <span>Discover</span>
+    </a>
+    <a href="#/settings" data-tab="settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <!-- ============================ READER ============================ -->
+  <section id="reader" class="reader" aria-label="Reader" hidden>
+    <div id="reader-stage"></div>
+
+    <header class="reader-bar reader-top">
+      <button class="icon-btn" id="reader-back" aria-label="Back to library">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="reader-titles">
+        <div class="reader-title" id="reader-title"></div>
+        <div class="reader-chapter" id="reader-chapter"></div>
+      </div>
+      <button class="icon-btn" id="search-btn" aria-label="Search in book">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      <button class="icon-btn" id="toc-btn" aria-label="Contents and bookmarks">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>
+      </button>
+      <button class="icon-btn" id="bookmark-btn" aria-label="Bookmark this page" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg>
+      </button>
+      <button class="icon-btn" id="type-btn" aria-label="Reading settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5-14 5 14M4.8 14h6.4M14 19l3.5-9 3.5 9M15.2 16h4.6"/></svg>
+      </button>
+    </header>
+
+    <footer class="reader-bar reader-bottom">
+      <div class="reader-controls">
+        <button class="icon-btn" id="rsvp-btn" aria-label="Speed reading" title="Speed reading">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+        </button>
+        <input type="range" id="progress-slider" min="0" max="1" step="0.0005" value="0" aria-label="Reading position">
+        <button class="icon-btn" id="listen-btn" aria-label="Read aloud" title="Read aloud">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10zM16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
+        </button>
+      </div>
+      <div class="reader-status">
+        <span id="status-left"></span>
+        <span id="status-right"></span>
+      </div>
     </footer>
 
-  </div><!-- /reader-view -->
-
-
-  <!-- ================================================
-       PANEL BACKDROP
-       ============================================== -->
-  <div class="panel-backdrop" id="panel-backdrop" aria-hidden="true"></div>
-
-
-  <!-- ================================================
-       SETTINGS PANEL
-       ============================================== -->
-  <div class="panel" id="settings-panel" role="dialog" aria-label="Reading Settings" aria-modal="true">
-    <div class="panel-handle"></div>
-    <div class="panel-header">
-      <span class="panel-title">Reading Settings</span>
-      <button class="icon-btn" id="close-settings" aria-label="Close settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
+    <div class="tts-bar" id="tts-bar" role="region" aria-label="Read aloud controls" hidden>
+      <button class="icon-btn" id="tts-prev" aria-label="Previous sentence"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5l-9 7 9 7z"/></svg></button>
+      <button class="icon-btn tts-play" id="tts-play" aria-label="Play or pause reading aloud">
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z" fill="currentColor" stroke="none"/></svg>
       </button>
+      <button class="icon-btn" id="tts-next" aria-label="Next sentence"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l9 7-9 7z"/></svg></button>
+      <button class="tts-rate" id="tts-rate" aria-label="Speaking rate">1×</button>
+      <button class="icon-btn" id="tts-close" aria-label="Stop reading aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
-    <div class="panel-body">
 
-      <!-- Font size -->
-      <div class="setting-section">
-        <div class="setting-label">Font Size</div>
-        <div class="font-size-controls">
-          <button class="size-btn" id="font-decrease" aria-label="Decrease font size">A−</button>
-          <div class="size-display" id="font-size-display">18px</div>
-          <button class="size-btn" id="font-increase" aria-label="Increase font size">A+</button>
-        </div>
+    <div class="reader-mini" aria-hidden="true"><span id="mini-left"></span><span id="mini-right"></span></div>
+    <div class="reader-loading" id="reader-loading"><div class="spinner"></div></div>
+  </section>
+
+  <!-- ============================ SHEETS ============================ -->
+  <div id="sheet-backdrop"></div>
+
+  <div class="sheet" id="sheet-nav" role="dialog" aria-modal="true" aria-labelledby="nav-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="segmented small" role="tablist" id="nav-tabs">
+        <button role="tab" aria-selected="true" data-pane="toc" id="nav-title">Contents</button>
+        <button role="tab" aria-selected="false" data-pane="marks">Bookmarks</button>
       </div>
-
-      <!-- Font family -->
-      <div class="setting-section">
-        <div class="setting-label">Typeface</div>
-        <div class="font-options">
-          <button class="font-opt active" data-font="serif">Serif</button>
-          <button class="font-opt" data-font="sans">Sans</button>
-          <button class="font-opt" data-font="dyslexic">Mono</button>
-        </div>
-      </div>
-
-      <!-- Line height -->
-      <div class="setting-section">
-        <div class="setting-label">Line Spacing</div>
-        <input type="range" class="styled-slider" id="line-height-slider"
-               min="1.3" max="2.2" step="0.05" value="1.75" aria-label="Line spacing">
-      </div>
-
-      <!-- Margins -->
-      <div class="setting-section">
-        <div class="setting-label">Margins</div>
-        <div class="margin-options">
-          <button class="margin-opt" data-margin="narrow">Narrow</button>
-          <button class="margin-opt active" data-margin="medium">Medium</button>
-          <button class="margin-opt" data-margin="wide">Wide</button>
-        </div>
-      </div>
-
-      <!-- Theme -->
-      <div class="setting-section">
-        <div class="setting-label">Theme</div>
-        <div class="theme-options">
-          <button class="theme-opt active" data-theme="light">
-            <span class="theme-swatch swatch-light"></span>
-            Light
-          </button>
-          <button class="theme-opt" data-theme="sepia">
-            <span class="theme-swatch swatch-sepia"></span>
-            Sepia
-          </button>
-          <button class="theme-opt" data-theme="dark">
-            <span class="theme-swatch swatch-dark"></span>
-            Dark
-          </button>
-        </div>
-      </div>
-
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
-  </div><!-- /settings-panel -->
-
-
-  <!-- ================================================
-       TABLE OF CONTENTS PANEL
-       ============================================== -->
-  <div class="panel" id="toc-panel" role="dialog" aria-label="Table of Contents" aria-modal="true">
-    <div class="panel-handle"></div>
-    <div class="panel-header">
-      <span class="panel-title">Contents</span>
-      <button class="icon-btn" id="close-toc" aria-label="Close table of contents">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
-      </button>
+    <div class="sheet-body" tabindex="-1">
+      <ol class="toc" id="toc-list" data-pane="toc"></ol>
+      <div id="marks-list" data-pane="marks" hidden></div>
     </div>
-    <div class="panel-body">
-      <ul class="toc-list" id="toc-list" role="list"></ul>
-    </div>
-  </div><!-- /toc-panel -->
-
-
-  <!-- ================================================
-       BOOKMARKS PANEL
-       ============================================== -->
-  <div class="panel" id="bookmarks-panel" role="dialog" aria-label="Bookmarks" aria-modal="true">
-    <div class="panel-handle"></div>
-    <div class="panel-header">
-      <span class="panel-title">Bookmarks</span>
-      <button class="icon-btn" id="close-bookmarks" aria-label="Close bookmarks">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-    <div class="panel-body" id="bookmarks-body"></div>
-  </div><!-- /bookmarks-panel -->
-
-
-  <!-- ================================================
-       RSVP OVERLAY
-       ============================================== -->
-  <div class="rsvp-overlay" id="rsvp-overlay" aria-label="Speed Reader" role="dialog" aria-modal="true">
-
-    <!-- Header bar -->
-    <div class="rsvp-header">
-      <button class="icon-btn" id="rsvp-close" aria-label="Exit speed reader">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
-      </button>
-      <div class="rsvp-wpm-display">
-        <button class="rsvp-wpm-btn" id="rsvp-wpm-down" aria-label="Slower">−</button>
-        <span id="rsvp-wpm-label">250 wpm</span>
-        <button class="rsvp-wpm-btn" id="rsvp-wpm-up" aria-label="Faster">+</button>
-      </div>
-      <div style="width:40px"></div>
-    </div>
-
-    <!-- Word display -->
-    <div class="rsvp-stage">
-      <div class="rsvp-guide-top"></div>
-      <div class="rsvp-word-wrap">
-        <span class="rsvp-word-left"  id="rsvp-left"></span><!--
-        --><span class="rsvp-word-orp"  id="rsvp-orp"></span><!--
-        --><span class="rsvp-word-right" id="rsvp-right"></span>
-      </div>
-      <div class="rsvp-guide-bottom"></div>
-    </div>
-
-    <!-- Progress -->
-    <div class="rsvp-progress-wrap">
-      <div class="rsvp-progress-track">
-        <div class="rsvp-progress-fill" id="rsvp-progress-fill"></div>
-      </div>
-      <div class="rsvp-progress-label" id="rsvp-progress-label"></div>
-    </div>
-
-    <!-- Controls -->
-    <div class="rsvp-controls">
-      <button class="rsvp-ctrl-btn" id="rsvp-skip-back" aria-label="Back 10 words">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>
-        </svg>
-      </button>
-      <button class="rsvp-ctrl-btn" id="rsvp-prev" aria-label="Previous word">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-      </button>
-      <button class="rsvp-ctrl-btn rsvp-play-btn" id="rsvp-play" aria-label="Play / Pause">
-        <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M5 3l14 9-14 9V3z"/>
-        </svg>
-        <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none">
-          <path d="M6 4h4v16H6zM14 4h4v16h-4z"/>
-        </svg>
-      </button>
-      <button class="rsvp-ctrl-btn" id="rsvp-next" aria-label="Next word">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-      </button>
-      <button class="rsvp-ctrl-btn" id="rsvp-skip-fwd" aria-label="Forward 10 words">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 17l5-5-5-5M6 17l5-5-5-5"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Speed presets -->
-    <div class="rsvp-presets">
-      <button class="rsvp-preset" data-wpm="150">150</button>
-      <button class="rsvp-preset" data-wpm="250">250</button>
-      <button class="rsvp-preset" data-wpm="350">350</button>
-      <button class="rsvp-preset" data-wpm="500">500</button>
-      <button class="rsvp-preset" data-wpm="700">700</button>
-    </div>
-
-  </div><!-- /rsvp-overlay -->
-
-
-  <!-- ================================================
-       LOADING OVERLAY
-       ============================================== -->
-  <div class="loading-overlay fade-out" id="loading-overlay" role="status" aria-live="polite">
-    <div class="loading-spinner"></div>
-    <div class="loading-text" id="loading-text">Opening book…</div>
   </div>
 
+  <div class="sheet" id="sheet-type" role="dialog" aria-modal="true" aria-labelledby="type-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="type-title">Reading settings</h2>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" id="type-body" tabindex="-1"></div>
+  </div>
 
-  <!-- ================================================
-       TOAST
-       ============================================== -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sheet" id="sheet-search" role="dialog" aria-modal="true" aria-labelledby="search-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="search-title">Search in book</h2>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" tabindex="-1">
+      <form class="search" id="book-search-form" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="book-search" placeholder="Find words or phrases" autofocus autocomplete="off" enterkeyhint="search" aria-label="Search text">
+      </form>
+      <div id="book-search-status" class="muted small" aria-live="polite"></div>
+      <ol id="book-search-results" class="search-results"></ol>
+    </div>
+  </div>
 
-</div><!-- /app -->
+  <div class="sheet" id="sheet-book" role="dialog" aria-modal="true" aria-labelledby="book-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title visually-hidden" id="book-title">Book details</h2>
+      <span></span>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" id="book-body" tabindex="-1"></div>
+  </div>
 
-<script src="js/books.js"></script>
-<script src="js/app.js"></script>
+  <!-- ============================ RSVP ============================ -->
+  <div id="rsvp" class="rsvp" role="dialog" aria-modal="true" aria-label="Speed reader" aria-hidden="true">
+    <div class="rsvp-top">
+      <button class="icon-btn" id="rsvp-close" aria-label="Close speed reader"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      <div class="rsvp-speed">
+        <button id="rsvp-slower" aria-label="Slower">−</button>
+        <span id="rsvp-wpm">300 wpm</span>
+        <button id="rsvp-faster" aria-label="Faster">+</button>
+      </div>
+      <span class="spacer-40"></span>
+    </div>
+    <div class="rsvp-stage" role="button" aria-label="Play or pause">
+      <div class="rsvp-line top"></div>
+      <div class="rsvp-word" aria-live="off"><span id="rsvp-left"></span><span id="rsvp-pivot"></span><span id="rsvp-right"></span></div>
+      <div class="rsvp-line bottom"></div>
+      <p class="rsvp-context" id="rsvp-context"></p>
+    </div>
+    <div class="rsvp-progress"><div class="track"><div id="rsvp-fill"></div></div><div id="rsvp-label"></div></div>
+    <div class="rsvp-controls">
+      <button id="rsvp-back" aria-label="Back 10 words"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button>
+      <button id="rsvp-prev" aria-label="Previous word"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button id="rsvp-play" class="play" aria-label="Play or pause">
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button id="rsvp-next" aria-label="Next word"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+      <button id="rsvp-fwd" aria-label="Forward 10 words"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg></button>
+    </div>
+    <div class="rsvp-presets">
+      <button class="rsvp-preset" data-wpm="200">200</button>
+      <button class="rsvp-preset" data-wpm="300">300</button>
+      <button class="rsvp-preset" data-wpm="400">400</button>
+      <button class="rsvp-preset" data-wpm="550">550</button>
+      <button class="rsvp-preset" data-wpm="700">700</button>
+    </div>
+  </div>
+
+  <div id="drop-overlay" aria-hidden="true"><div>Drop books to add them to your library</div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="update-banner" role="status" hidden>
+    <span>A new version is ready.</span>
+    <button id="update-reload">Reload</button>
+  </div>
+</div>
 </body>
 </html>

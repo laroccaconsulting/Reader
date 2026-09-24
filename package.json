@@ -1,0 +1,19 @@
+{
+  "name": "reader",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A free, open-source, fully offline ereader with direct access to public-domain libraries. No ads, no tracking.",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
+    "serve": "python3 -m http.server 8080",
+    "test": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "playwright test",
+    "corpus": "node tests/unit/corpus-report.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

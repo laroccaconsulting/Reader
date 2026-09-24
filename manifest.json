@@ -1,21 +1,37 @@
 {
-  "name": "Reader — Classic Books",
+  "id": "./",
+  "name": "Reader",
   "short_name": "Reader",
-  "description": "A beautiful offline ereader with 50 classic books from Project Gutenberg.",
-  "start_url": "./index.html",
+  "description": "A free, open-source, fully offline ereader with direct access to public-domain libraries. No ads, no tracking, ever.",
+  "start_url": "./#/library",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#FAFAF8",
-  "theme_color": "#6B5EA8",
+  "theme_color": "#FAFAF8",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["books", "education", "productivity"],
   "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "file_handlers": [
     {
-      "src": "icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "action": "./#/library",
+      "accept": {
+        "application/epub+zip": [".epub"],
+        "application/x-fictionbook+xml": [".fb2"],
+        "application/x-mobipocket-ebook": [".mobi"],
+        "application/vnd.amazon.ebook": [".azw3", ".azw"],
+        "application/vnd.comicbook+zip": [".cbz"],
+        "text/plain": [".txt"]
+      }
     }
   ],
-  "categories": ["books", "education", "entertainment"],
-  "lang": "en"
+  "shortcuts": [
+    { "name": "Discover books", "url": "./#/discover", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }

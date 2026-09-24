@@ -5,7 +5,7 @@ name: Catalog probe
 on:
   workflow_dispatch:
   push:
-    paths: ['.github/workflows/cors-probe.yml']
+    paths: ['.github/workflows/catalog-probe.yml']
 
 jobs:
   probe:

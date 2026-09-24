@@ -1,0 +1,13 @@
+name = "reader-relay"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+# Logging is off: no request logs are kept.
+[observability]
+enabled = false
+
+[vars]
+# Optional: only allow your own Reader site(s) to use the relay, e.g.
+# ALLOWED_ORIGINS = "https://laroccaconsulting.github.io"
+ALLOWED_ORIGINS = ""

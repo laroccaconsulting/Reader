@@ -1,0 +1,30 @@
+// Manual smoke run: node scripts/smoke.mjs [baseUrl]  — screenshots into $OUT (default ./.smoke)
+import { chromium, devices } from '@playwright/test'
+import { mkdirSync } from 'node:fs'
+const base = process.argv[2] ?? 'http://localhost:8080/'
+const out = process.env.OUT ?? '.smoke'
+mkdirSync(out, { recursive: true })
+const browser = await chromium.launch({ executablePath: process.env.CHROME })
+const ctx = await browser.newContext({ ...devices['iPhone 13'], defaultBrowserType: undefined })
+const page = await ctx.newPage()
+const errors = []
+page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`) })
+page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
+await page.goto(base)
+await page.waitForSelector('.book-card')
+await page.screenshot({ path: `${out}/1-library.png` })
+await page.click('.book-open[data-id="pg-1342"]')
+await page.waitForSelector('#reader:not([hidden])')
+await page.waitForFunction(() => document.querySelector('#status-right')?.textContent?.includes('%'), null, { timeout: 20000 })
+await page.waitForTimeout(800)
+await page.screenshot({ path: `${out}/2-reader.png` })
+await page.mouse.click(360, 400)
+await page.waitForTimeout(600)
+await page.screenshot({ path: `${out}/3-next-page.png` })
+await page.mouse.click(195, 400)
+await page.waitForTimeout(300)
+await page.click('#toc-btn')
+await page.waitForTimeout(500)
+await page.screenshot({ path: `${out}/4-toc.png` })
+console.log(errors.join('\n') || 'no console errors')
+await browser.close()

@@ -1,0 +1,414 @@
+{
+  "version": 1,
+  "description": "Starter shelf: public-domain classics bundled with the app (books/{gutenberg}.txt). Single source of truth for the app, scripts and workflows.",
+  "books": [
+    {
+      "gutenberg": 1342,
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "year": 1813,
+      "genre": "Romance",
+      "description": "The witty Elizabeth Bennet navigates love, class, and first impressions in Regency England."
+    },
+    {
+      "gutenberg": 84,
+      "title": "Frankenstein",
+      "author": "Mary Shelley",
+      "year": 1818,
+      "genre": "Horror",
+      "description": "A scientist creates life but cannot face responsibility for his monstrous creation."
+    },
+    {
+      "gutenberg": 1661,
+      "title": "The Adventures of Sherlock Holmes",
+      "author": "Arthur Conan Doyle",
+      "year": 1892,
+      "genre": "Mystery",
+      "description": "Twelve classic detective stories featuring the brilliant, eccentric Sherlock Holmes."
+    },
+    {
+      "gutenberg": 11,
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Lewis Carroll",
+      "year": 1865,
+      "genre": "Fantasy",
+      "description": "A girl falls into a rabbit hole and enters a world of delightful, surreal nonsense."
+    },
+    {
+      "gutenberg": 5200,
+      "title": "The Metamorphosis",
+      "author": "Franz Kafka",
+      "year": 1915,
+      "genre": "Fiction",
+      "description": "A traveling salesman wakes one morning to find himself transformed into a giant insect."
+    },
+    {
+      "gutenberg": 2701,
+      "title": "Moby-Dick",
+      "author": "Herman Melville",
+      "year": 1851,
+      "genre": "Adventure",
+      "description": "Captain Ahab's obsessive, all-consuming quest to hunt the legendary white whale."
+    },
+    {
+      "gutenberg": 98,
+      "title": "A Tale of Two Cities",
+      "author": "Charles Dickens",
+      "year": 1859,
+      "genre": "Historical",
+      "description": "A story of sacrifice and redemption set against the backdrop of the French Revolution."
+    },
+    {
+      "gutenberg": 844,
+      "title": "The Importance of Being Earnest",
+      "author": "Oscar Wilde",
+      "year": 1895,
+      "genre": "Comedy",
+      "description": "A trivial comedy for serious people, sparkling with wit and incisive social satire."
+    },
+    {
+      "gutenberg": 174,
+      "title": "The Picture of Dorian Gray",
+      "author": "Oscar Wilde",
+      "year": 1890,
+      "genre": "Horror",
+      "description": "A portrait bears the scars of sin while its beautiful subject stays eternally young."
+    },
+    {
+      "gutenberg": 345,
+      "title": "Dracula",
+      "author": "Bram Stoker",
+      "year": 1897,
+      "genre": "Horror",
+      "description": "Jonathan Harker's journey to Transylvania begins a terrifying battle with an immortal vampire."
+    },
+    {
+      "gutenberg": 2554,
+      "title": "Crime and Punishment",
+      "author": "Fyodor Dostoevsky",
+      "year": 1866,
+      "genre": "Fiction",
+      "description": "A student commits murder and is consumed by guilt, paranoia, and moral disintegration."
+    },
+    {
+      "gutenberg": 43,
+      "title": "Dr Jekyll and Mr Hyde",
+      "author": "Robert Louis Stevenson",
+      "year": 1886,
+      "genre": "Horror",
+      "description": "A scientist's experiments unleash the darkest side of human nature."
+    },
+    {
+      "gutenberg": 120,
+      "title": "Treasure Island",
+      "author": "Robert Louis Stevenson",
+      "year": 1883,
+      "genre": "Adventure",
+      "description": "Young Jim Hawkins sets sail for buried treasure with treacherous pirates on his trail."
+    },
+    {
+      "gutenberg": 36,
+      "title": "The War of the Worlds",
+      "author": "H.G. Wells",
+      "year": 1898,
+      "genre": "Sci-Fi",
+      "description": "Martians invade Earth with devastating war machines, threatening all of civilization."
+    },
+    {
+      "gutenberg": 1513,
+      "title": "Romeo and Juliet",
+      "author": "William Shakespeare",
+      "year": 1597,
+      "genre": "Drama",
+      "description": "Two young lovers from feuding families are torn apart by fate in Verona."
+    },
+    {
+      "gutenberg": 1524,
+      "title": "Hamlet",
+      "author": "William Shakespeare",
+      "year": 1603,
+      "genre": "Drama",
+      "description": "The Prince of Denmark seeks revenge for his father's murder while consumed by doubt."
+    },
+    {
+      "gutenberg": 1533,
+      "title": "Macbeth",
+      "author": "William Shakespeare",
+      "year": 1606,
+      "genre": "Drama",
+      "description": "Prophecy and ambition drive a Scottish general to murder, madness, and ruin."
+    },
+    {
+      "gutenberg": 1514,
+      "title": "A Midsummer Night's Dream",
+      "author": "William Shakespeare",
+      "year": 1600,
+      "genre": "Comedy",
+      "description": "Lovers, fairies, and bumbling players weave magical confusion in an enchanted forest."
+    },
+    {
+      "gutenberg": 74,
+      "title": "The Adventures of Tom Sawyer",
+      "author": "Mark Twain",
+      "year": 1876,
+      "genre": "Adventure",
+      "description": "A mischievous boy's adventures and misadventures along the great Mississippi River."
+    },
+    {
+      "gutenberg": 76,
+      "title": "Adventures of Huckleberry Finn",
+      "author": "Mark Twain",
+      "year": 1884,
+      "genre": "Adventure",
+      "description": "Huck and Jim journey down the Mississippi, seeking freedom and discovering America."
+    },
+    {
+      "gutenberg": 1184,
+      "title": "The Count of Monte Cristo",
+      "author": "Alexandre Dumas",
+      "year": 1844,
+      "genre": "Adventure",
+      "description": "An unjustly imprisoned man escapes and returns to exact an elaborate, patient revenge."
+    },
+    {
+      "gutenberg": 1257,
+      "title": "The Three Musketeers",
+      "author": "Alexandre Dumas",
+      "year": 1844,
+      "genre": "Adventure",
+      "description": "D'Artagnan joins Athos, Porthos, and Aramis to defend honor and serve the king."
+    },
+    {
+      "gutenberg": 103,
+      "title": "Around the World in 80 Days",
+      "author": "Jules Verne",
+      "year": 1872,
+      "genre": "Adventure",
+      "description": "The eccentric Phileas Fogg bets his fortune he can circumnavigate the globe in 80 days."
+    },
+    {
+      "gutenberg": 164,
+      "title": "Twenty Thousand Leagues Under the Sea",
+      "author": "Jules Verne",
+      "year": 1870,
+      "genre": "Sci-Fi",
+      "description": "Explorers become prisoners aboard Captain Nemo's astonishing submarine, the Nautilus."
+    },
+    {
+      "gutenberg": 3748,
+      "title": "Journey to the Center of the Earth",
+      "author": "Jules Verne",
+      "year": 1864,
+      "genre": "Sci-Fi",
+      "description": "A professor leads his nephew into an Icelandic volcano toward the very core of the Earth."
+    },
+    {
+      "gutenberg": 35,
+      "title": "The Time Machine",
+      "author": "H.G. Wells",
+      "year": 1895,
+      "genre": "Sci-Fi",
+      "description": "A Victorian inventor travels far into the future to discover the fate of humanity."
+    },
+    {
+      "gutenberg": 5230,
+      "title": "The Invisible Man",
+      "author": "H.G. Wells",
+      "year": 1897,
+      "genre": "Sci-Fi",
+      "description": "A scientist discovers the secret of invisibility, then descends into isolation and madness."
+    },
+    {
+      "gutenberg": 2097,
+      "title": "The Island of Doctor Moreau",
+      "author": "H.G. Wells",
+      "year": 1896,
+      "genre": "Sci-Fi",
+      "description": "A shipwrecked man discovers an island where a scientist creates terrible human-animal hybrids."
+    },
+    {
+      "gutenberg": 215,
+      "title": "The Call of the Wild",
+      "author": "Jack London",
+      "year": 1903,
+      "genre": "Adventure",
+      "description": "A domesticated dog is thrust into the brutal Klondike wilderness and must find his wild self."
+    },
+    {
+      "gutenberg": 910,
+      "title": "White Fang",
+      "author": "Jack London",
+      "year": 1906,
+      "genre": "Adventure",
+      "description": "A wolf-dog raised in the harsh Yukon wilderness learns to trust and love in a human world."
+    },
+    {
+      "gutenberg": 161,
+      "title": "Sense and Sensibility",
+      "author": "Jane Austen",
+      "year": 1811,
+      "genre": "Romance",
+      "description": "Two sisters with opposing natures navigate love, heartbreak, and social expectations."
+    },
+    {
+      "gutenberg": 158,
+      "title": "Emma",
+      "author": "Jane Austen",
+      "year": 1815,
+      "genre": "Romance",
+      "description": "A charming, well-meaning young woman plays matchmaker with entertaining unintended consequences."
+    },
+    {
+      "gutenberg": 1260,
+      "title": "Jane Eyre",
+      "author": "Charlotte Brontë",
+      "year": 1847,
+      "genre": "Romance",
+      "description": "An orphaned governess finds love and independence against Victorian social constraints."
+    },
+    {
+      "gutenberg": 768,
+      "title": "Wuthering Heights",
+      "author": "Emily Brontë",
+      "year": 1847,
+      "genre": "Romance",
+      "description": "A passionate, destructive love story set on the wild and desolate Yorkshire moors."
+    },
+    {
+      "gutenberg": 514,
+      "title": "Little Women",
+      "author": "Louisa May Alcott",
+      "year": 1868,
+      "genre": "Fiction",
+      "description": "The four March sisters grow up during the Civil War, each pursuing her own dreams."
+    },
+    {
+      "gutenberg": 4300,
+      "title": "Ulysses",
+      "author": "James Joyce",
+      "year": 1922,
+      "genre": "Fiction",
+      "description": "A single day in Dublin through the stream-of-consciousness of Leopold Bloom, mirroring The Odyssey."
+    },
+    {
+      "gutenberg": 996,
+      "title": "Don Quixote",
+      "author": "Miguel de Cervantes",
+      "year": 1605,
+      "genre": "Fiction",
+      "description": "A man so consumed by tales of chivalry that he sets out as a knight-errant to right all wrongs."
+    },
+    {
+      "gutenberg": 135,
+      "title": "Les Misérables",
+      "author": "Victor Hugo",
+      "year": 1862,
+      "genre": "Historical",
+      "description": "Jean Valjean's decades-long pursuit of redemption in the shadow of revolution and the relentless Javert."
+    },
+    {
+      "gutenberg": 2600,
+      "title": "War and Peace",
+      "author": "Leo Tolstoy",
+      "year": 1869,
+      "genre": "Historical",
+      "description": "A sweeping portrait of Russian society and five aristocratic families during the Napoleonic Wars."
+    },
+    {
+      "gutenberg": 1399,
+      "title": "Anna Karenina",
+      "author": "Leo Tolstoy",
+      "year": 1878,
+      "genre": "Fiction",
+      "description": "A married aristocrat risks everything for a passionate affair that society will not forgive."
+    },
+    {
+      "gutenberg": 28054,
+      "title": "The Brothers Karamazov",
+      "author": "Fyodor Dostoevsky",
+      "year": 1880,
+      "genre": "Fiction",
+      "description": "Three brothers, a murdered father, and searching questions of faith, doubt, and morality."
+    },
+    {
+      "gutenberg": 600,
+      "title": "Notes from Underground",
+      "author": "Fyodor Dostoevsky",
+      "year": 1864,
+      "genre": "Fiction",
+      "description": "A bitter, hyper-aware civil servant rails against society and reason from his underground existence."
+    },
+    {
+      "gutenberg": 1727,
+      "title": "The Odyssey",
+      "author": "Homer",
+      "year": -800,
+      "genre": "Epic",
+      "description": "Odysseus's epic ten-year journey home from Troy, facing monsters, gods, and terrible temptation."
+    },
+    {
+      "gutenberg": 6130,
+      "title": "The Iliad",
+      "author": "Homer",
+      "year": -762,
+      "genre": "Epic",
+      "description": "The wrath of Achilles and the siege of Troy in the greatest war epic of the ancient world."
+    },
+    {
+      "gutenberg": 1497,
+      "title": "The Republic",
+      "author": "Plato",
+      "year": -380,
+      "genre": "Philosophy",
+      "description": "Socratic dialogues exploring justice, the nature of the ideal state, and the philosopher-king."
+    },
+    {
+      "gutenberg": 2680,
+      "title": "Meditations",
+      "author": "Marcus Aurelius",
+      "year": 180,
+      "genre": "Philosophy",
+      "description": "Private reflections of a Roman emperor — a timeless guide to Stoic philosophy and virtuous living."
+    },
+    {
+      "gutenberg": 205,
+      "title": "Walden",
+      "author": "Henry David Thoreau",
+      "year": 1854,
+      "genre": "Non-Fiction",
+      "description": "Two years living simply in the Massachusetts woods — a meditation on nature and self-reliance."
+    },
+    {
+      "gutenberg": 132,
+      "title": "The Art of War",
+      "author": "Sun Tzu",
+      "year": -500,
+      "genre": "Philosophy",
+      "description": "Ancient Chinese military strategy with timeless wisdom on conflict, leadership, and deception."
+    },
+    {
+      "gutenberg": 2591,
+      "title": "Grimm's Fairy Tales",
+      "author": "Brothers Grimm",
+      "year": 1812,
+      "genre": "Fantasy",
+      "description": "Beloved folk tales from Cinderella to Rumpelstiltskin, collected by Jacob and Wilhelm Grimm."
+    },
+    {
+      "gutenberg": 11339,
+      "title": "Aesop's Fables",
+      "author": "Aesop",
+      "year": -620,
+      "genre": "Fables",
+      "description": "Timeless moral tales featuring animals whose follies perfectly mirror the weaknesses of human nature."
+    },
+    {
+      "gutenberg": 2852,
+      "title": "The Hound of the Baskervilles",
+      "author": "Arthur Conan Doyle",
+      "year": 1902,
+      "genre": "Mystery",
+      "description": "Holmes and Watson investigate a supernatural hound terrorizing the Baskerville family on the moors."
+    }
+  ]
+}

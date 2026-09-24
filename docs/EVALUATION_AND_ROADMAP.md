@@ -4,6 +4,13 @@ _Evaluation of `claude/offline-ereader-app-k5Pz3` @ `8d2cdc6`, September 2026._
 
 **Vision:** the best fully offline, installable, open-source ereader on the web. It connects directly and cleanly to free public-domain libraries. No ads, no tracking and no accounts, ever.
 
+> **Status (Milestone A, shipped):** rebuilt on foliate-js with EPUB/TXT/FB2/MOBI/CBZ support, CFI-based
+> progress, a new contents-aware text parser (all 51 starter books pass the regression corpus), Standard Ebooks and
+> Project Gutenberg in Discover, local import, bookmarks, in-book search, read-aloud, RSVP v2, backup/restore,
+> a hashed service-worker precache, a CSP, GPL-3.0 licence, and CI with unit plus Playwright (mobile, desktop and offline) tests.
+> CORS findings from CI: Standard Ebooks, Gutenberg OPDS, Internet Archive, Open Library and Wikisource allow
+> browser access; Gutenberg *files* do not (on any mirror), hence the optional `relay/`.
+
 ---
 
 ## 1. Summary
