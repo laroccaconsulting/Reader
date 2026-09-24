@@ -27,6 +27,7 @@ const clampWpm = (n, step = 1) => Math.max(MIN_WPM, Math.min(MAX_WPM, Math.round
 
 export class Autopilot extends EventTarget {
   active = false
+  atChapterEnd = false
   paused = false
   held = false
   elapsed = 0          // ms of reading time on this page (paused time excluded)
@@ -45,6 +46,7 @@ export class Autopilot extends EventTarget {
   #fadeTimer = null
   #docs = new Set()
   #quietUntil = 0     // ignore page moves caused by layout changes
+  #settleUntil = 0    // let a newly loaded chapter lay out before scrolling it
 
   constructor(reader) {
     super()
@@ -107,6 +109,7 @@ export class Autopilot extends EventTarget {
   stop() {
     if (!this.active) return
     this.active = false
+    this.atChapterEnd = false
     cancelAnimationFrame(this.#frame)
     this.#setNoSelect(false)
     this.reader.root.classList.remove('autopilot', 'auto-held', 'auto-pill-on')
@@ -125,6 +128,11 @@ export class Autopilot extends EventTarget {
 
   resume() {
     if (!this.active) return
+    if (this.atChapterEnd) {
+      this.atChapterEnd = false
+      this.elapsed = 0
+      this.#flip('auto')
+    }
     this.paused = false
     this.#last = performance.now()
     this.#render()
@@ -194,6 +202,7 @@ export class Autopilot extends EventTarget {
     try {
       await this.reader.next()
     } finally {
+      this.#settleUntil = performance.now() + 600
       setTimeout(() => { this.#selfFlip = false }, 50)
     }
     if (reason === 'auto' && (this.reader.location?.fraction ?? 0) <= before && before > 0.995) {
@@ -204,11 +213,12 @@ export class Autopilot extends EventTarget {
 
   #scrollStep(dt) {
     const r = this.reader.view?.renderer
-    if (!r?.scrollByPixels) return
+    if (!r?.scrollByPixels || this.#selfFlip || performance.now() < this.#settleUntil) return
     if (r.viewSize - r.end < 2) {
-      // end of this section: continue into the next one after a short beat
-      this.elapsed += dt
-      if (this.elapsed > 900) { this.elapsed = 0; this.#flip('auto') }
+      // End of the chapter: stop and let the reader finish the last lines.
+      // Tapping (or resuming) moves on to the next chapter.
+      this.atChapterEnd = true
+      this.pause()
       return
     }
     this.#carry += this.#pxPerMs * dt
@@ -375,6 +385,7 @@ export class Autopilot extends EventTarget {
     $('#auto-toggle', this.ui).setAttribute('aria-label', this.paused ? 'Resume autopilot' : 'Pause autopilot')
     this.status.textContent = this.held
       ? (this.paginated ? 'Holding · let go to turn' : 'Holding')
+      : this.atChapterEnd ? 'End of chapter · tap to continue'
       : this.paused ? 'Paused · tap the middle to continue' : ''
   }
 

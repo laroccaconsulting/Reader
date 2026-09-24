@@ -139,3 +139,22 @@ for (const flow of ['paginated', 'scrolled']) {
     await page.mouse.up()
   })
 }
+
+test('scroll layout: pauses at the end of a chapter until the reader taps', async ({ page }) => {
+  await openLibrary(page)
+  await page.evaluate(async () => (await import('./app/settings.js')).update({ flow: 'scrolled', autoWpm: 300 }))
+  await openStarterBook(page, 'pg-1342')
+  await page.waitForTimeout(800)
+  await page.keyboard.press('a')
+  const section = () => page.evaluate(() => readerApp.reader.location?.section?.current)
+  const start = await section()
+  // jump to just before the end of this chapter
+  await page.evaluate(() => { const r = readerApp.reader.view.renderer; r.scrollByPixels(r.viewSize - r.end - 30) })
+  await expect(page.locator('#auto-status')).toHaveText('End of chapter · tap to continue', { timeout: 8000 })
+  await page.waitForTimeout(1500)
+  expect(await section()).toBe(start) // it waits for the reader
+  const c = await centre(page)
+  await page.mouse.click(c.x, c.y)
+  await expect.poll(section, { timeout: 8000 }).toBe(start + 1)
+  await expect(page.locator('#auto-ui')).not.toHaveClass(/paused/)
+})

@@ -106,6 +106,18 @@ export class Highlights extends EventTarget {
     this.pop.querySelectorAll('[data-color]').forEach(b =>
       b.setAttribute('aria-pressed', String(existing && this.#editing?.color === b.dataset.color)))
     this.pop.hidden = false
+    // Touch devices (iOS especially) draw their own Copy/Look Up menu right next to the
+    // selection, and web apps can't suppress it. So on touch we dock our toolbar to the
+    // screen edge instead: the bottom, or the top if the selection is near the bottom.
+    if (matchMedia('(pointer: coarse)').matches) {
+      const selBottom = f.top + last.bottom
+      const dockTop = selBottom > innerHeight - 150
+      this.pop.classList.add('docked')
+      this.pop.classList.toggle('dock-top', dockTop)
+      this.pop.style.transform = ''
+      return
+    }
+    this.pop.classList.remove('docked', 'dock-top')
     const pw = this.pop.offsetWidth, ph = this.pop.offsetHeight
     let top = f.top + first.top - ph - 12
     if (top < 60) top = f.top + last.bottom + 12

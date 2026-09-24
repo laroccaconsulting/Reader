@@ -558,6 +558,12 @@ input[type="range"] { accent-color: var(--accent); width: 100%; min-height: 32px
   box-shadow: var(--shadow-heavy);
   border: 1px solid var(--border);
 }
+.hl-pop.docked {
+  left: 12px; right: 12px; margin-inline: auto; width: max-content; max-width: calc(100% - 24px);
+  top: auto; bottom: calc(var(--safe-bottom) + 14px);
+  overflow-x: auto; scrollbar-width: none;
+}
+.hl-pop.docked.dock-top { top: calc(var(--safe-top) + 12px); bottom: auto; }
 .hl-pop button { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-2); }
 .hl-pop button:hover { background: var(--surface); }
 .hl-pop i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
