@@ -150,7 +150,7 @@ export class Reader extends EventTarget {
     // Defer so a tap on a highlight (handled by foliate's overlayer) can claim it first.
     setTimeout(() => {
       if (Date.now() - (this.suppressTap ?? 0) < 400) return
-      if (this.dispatchEvent(new CustomEvent('tap', { cancelable: true }))) this.handleTap(x)
+      if (this.dispatchEvent(new CustomEvent('tap', { cancelable: true, detail: { x } }))) this.handleTap(x)
     }, 0)
   }
 

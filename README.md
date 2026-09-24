@@ -17,6 +17,9 @@ no accounts and no tracking, ever.**
   one or two pages at a time, or scrolling. Themes: light, sepia, dark and true black.
 - **Reading tools:** a real table of contents, bookmarks, full-text search, a position slider,
   read-aloud with your device's voices, and a speed-reading (RSVP) mode that picks up where you are.
+- **Autopilot:** hands-free reading. In page mode a progress bar fills as you read; hold anywhere
+  when you need longer (the page turns when you let go), tap ahead to turn early, and it learns your
+  pace. In scroll mode the text glides at your words-per-minute, with hold-to-pause and fine +/− control.
 - **Share quotes:** select text → share a tasteful quote card (square, story or wide) and a link that
   opens the exact passage, even for someone who doesn't have the book yet. See [docs/SHARING_AND_DOMAIN.md](docs/SHARING_AND_DOMAIN.md).
 - **Yours:** import your own files (button, drag and drop, or *Open with* on desktop), and export a backup of your progress and bookmarks.

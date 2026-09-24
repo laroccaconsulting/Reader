@@ -9,6 +9,7 @@ import { Reader, tocHtml } from './reader/reader.js'
 import { RSVP } from './reader/rsvp.js'
 import { ReadAloud } from './reader/tts.js'
 import { Highlights, COLORS } from './reader/highlights.js'
+import { Autopilot } from './reader/autopilot.js'
 import { renderTypeSheet } from './ui/type-sheet.js'
 import { renderSettings } from './ui/settings-screen.js'
 import { Discover } from './ui/discover.js'
@@ -31,7 +32,7 @@ const state = {
 }
 
 const sheets = {}
-let reader, rsvp, tts, highlights, discover
+let reader, rsvp, tts, highlights, autopilot, discover
 
 /* ======================================================================
    Library screen
@@ -466,6 +467,10 @@ function setupReaderUI() {
   reader = new Reader($('#reader'))
   rsvp = new RSVP(reader)
   tts = new ReadAloud(reader)
+  autopilot = new Autopilot(reader)
+  $('#auto-btn').addEventListener('click', () => { tts.stop(); autopilot.toggle() })
+  autopilot.addEventListener('end', () => toast('The end. Autopilot stopped.'))
+  globalThis.readerApp = { reader, autopilot, rsvp, tts } // handy for debugging and tests
   highlights = new Highlights(reader, { noteSheet: sheets.note, defineSheet: sheets.define })
   highlights.addEventListener('change', () => { if (sheets.nav.isOpen) renderMarks() })
   highlights.addEventListener('share', e => shareQuote({ record: reader.record, ...e.detail }))
@@ -477,7 +482,7 @@ function setupReaderUI() {
   })
   reader.addEventListener('tap', e => { if (highlights.popoverOpen) { e.preventDefault(); highlights.hidePopover() } })
   $('#listen-btn').hidden = !tts.supported
-  $('#listen-btn').addEventListener('click', () => { tts.active ? tts.stop() : tts.start(); reader.hideChrome() })
+  $('#listen-btn').addEventListener('click', () => { autopilot?.stop(); tts.active ? tts.stop() : tts.start(); reader.hideChrome() })
   reader.addEventListener('relocate', onRelocate)
   reader.addEventListener('bookmarks', () => { onRelocate(); if (sheets.nav.isOpen) renderMarks() })
   reader.addEventListener('doc-keydown', e => handleKey(e.detail))
@@ -489,7 +494,7 @@ function setupReaderUI() {
   $('#toc-btn').addEventListener('click', () => openNav('toc'))
   $('#bookmark-btn').addEventListener('click', () => reader.toggleBookmark())
   $('#type-btn').addEventListener('click', () => { renderTypeSheet($('#type-body')); sheets.type.open() })
-  $('#rsvp-btn').addEventListener('click', () => { tts.stop(); rsvp.open() })
+  $('#rsvp-btn').addEventListener('click', () => { tts.stop(); autopilot.stop(); rsvp.open() })
   $('#search-btn').addEventListener('click', () => sheets.search.open())
 
   $('#nav-tabs').addEventListener('click', e => {
@@ -555,6 +560,7 @@ function handleKey(e) {
   if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return
   const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) && e.target.type !== 'range'
   if (rsvp?.isOpen) { if (rsvp.handleKey(e)) e.preventDefault(); return }
+  if (autopilot?.active && !Sheet.stack.length && !inField && autopilot.handleKey(e)) { e.preventDefault(); return }
   if (e.key === 'Escape') {
     if (Sheet.closeTop()) { e.preventDefault(); return }
     if (highlights?.popoverOpen) { e.preventDefault(); highlights.hidePopover(); return }
@@ -576,6 +582,7 @@ function handleKey(e) {
   else if (k === 'f' || k === '/') { e.preventDefault(); sheets.search.open() }
   else if (k === 'r') { tts.stop(); rsvp.open() }
   else if (k === 'p') tts.active ? tts.toggle() : tts.start()
+  else if (k === 'a') { tts.stop(); autopilot.start() }
   else if (k === 'm') reader.toggleChrome()
 }
 

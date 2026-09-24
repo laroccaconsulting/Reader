@@ -139,6 +139,9 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
         </button>
         <input type="range" id="progress-slider" min="0" max="1" step="0.0005" value="0" aria-label="Reading position">
+        <button class="icon-btn" id="auto-btn" aria-label="Autopilot: hands-free reading" title="Autopilot">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor"/></svg>
+        </button>
         <button class="icon-btn" id="listen-btn" aria-label="Read aloud" title="Read aloud">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10zM16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
         </button>
@@ -158,6 +161,21 @@
       <button class="icon-btn" id="tts-next" aria-label="Next sentence"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l9 7-9 7z"/></svg></button>
       <button class="tts-rate" id="tts-rate" aria-label="Speaking rate">1×</button>
       <button class="icon-btn" id="tts-close" aria-label="Stop reading aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="auto-ui" id="auto-ui" hidden>
+      <div class="auto-track" aria-hidden="true"><div id="auto-fill"></div></div>
+      <div class="auto-pill" id="auto-pill" role="region" aria-label="Autopilot controls">
+        <button class="icon-btn" id="auto-toggle" aria-label="Pause autopilot">
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z" fill="currentColor" stroke="none"/></svg>
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="auto-step" id="auto-slower" aria-label="Slower">−</button>
+        <span class="auto-wpm" id="auto-wpm">230 wpm</span>
+        <button class="auto-step" id="auto-faster" aria-label="Faster">+</button>
+        <button class="icon-btn" id="auto-stop" aria-label="Stop autopilot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        <div class="auto-status" id="auto-status" aria-live="polite"></div>
+      </div>
     </div>
 
     <div class="reader-mini" aria-hidden="true"><span id="mini-left"></span><span id="mini-right"></span></div>

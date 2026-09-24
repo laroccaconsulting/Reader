@@ -64,6 +64,7 @@ export function renderTypeSheet(root) {
         <button class="option" role="switch" data-toggle="justify" aria-checked="${String(settings.justify)}">Justify</button>
         <button class="option" role="switch" data-toggle="hyphenate" aria-checked="${String(settings.hyphenate)}">Hyphenate</button>
         <button class="option" role="switch" data-toggle="animated" aria-checked="${String(settings.animated)}">Page animation</button>
+        <button class="option" role="switch" data-toggle="autoCalibrate" aria-checked="${String(settings.autoCalibrate !== false)}">Autopilot learns my pace</button>
       </div>
     </div>`)
 

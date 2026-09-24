@@ -801,6 +801,11 @@ export class Paginator extends HTMLElement {
         element[scrollProp] = Math.max(min, Math.min(max,
             element[scrollProp] + delta))
     }
+    // [Reader patch] unclamped scrolling for Autopilot in scrolled mode
+    scrollByPixels(delta) {
+        if (!this.#view) return
+        this.#container[this.scrollProp] += delta
+    }
     snap(vx, vy) {
         const velocity = this.#vertical ? vy : vx
         const [offset, a, b] = this.#scrollBounds

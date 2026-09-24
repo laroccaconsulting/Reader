@@ -7,7 +7,7 @@ const BUDGET_KB = 110 // app shell: HTML + CSS + JS loaded at startup (fonts and
 const startup = [
   'index.html', 'styles/app.css', 'styles/fonts.css', 'app/boot-theme.js',
   'app/main.js', 'app/db.js', 'app/library.js', 'app/settings.js', 'app/net.js', 'app/version.js', 'app/stats.js', 'app/sw-client.js',
-  'app/reader/reader.js', 'app/reader/rsvp.js', 'app/reader/tts.js', 'app/reader/highlights.js', 'app/reader/define.js',
+  'app/reader/reader.js', 'app/reader/rsvp.js', 'app/reader/tts.js', 'app/reader/highlights.js', 'app/reader/define.js', 'app/reader/autopilot.js',
   'app/ui/dom.js', 'app/ui/covers.js', 'app/ui/discover.js', 'app/ui/type-sheet.js', 'app/ui/settings-screen.js',
   'app/share/quote-link.js', 'app/share/quote-image.js', 'app/share/share-sheet.js', 'app/reader/footnotes.js',
   'app/catalog/standard-ebooks.js', 'app/catalog/gutenberg.js', 'app/catalog/opds.js', 'app/txt/txt-book.js', 'app/txt/gutenberg.js',
