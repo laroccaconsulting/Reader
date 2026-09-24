@@ -40,9 +40,10 @@ test('pages: holding keeps the page, letting go turns it and slows the pace', as
   await expect(page.locator('#auto-ui')).toHaveClass(/held/)
   await expect(page.locator('#auto-status')).toContainText('let go to turn')
   expect(await readerText(page)).toBe(before) // the page waited
+  const state = await page.evaluate(() => { const a = readerApp.autopilot; return { words: a.words, elapsed: a.elapsed, duration: a.duration, wpm: a.wpm } })
   await page.mouse.up()
   await expect.poll(() => readerText(page), { timeout: 5000 }).not.toBe(before)
-  expect(await wpm(page)).toBeLessThan(start)
+  expect(await wpm(page), JSON.stringify(state)).toBeLessThan(start)
   await expect(page.locator('#auto-ui')).not.toHaveClass(/held/)
 })
 

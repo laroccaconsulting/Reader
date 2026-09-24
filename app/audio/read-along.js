@@ -29,6 +29,7 @@ export class ReadAlong extends EventTarget {
   #following = true
   #lastFollow = 0
   #navigating = false
+  #navTarget = null
   #lastSave = 0
   #lookupToken = 0
 
@@ -66,7 +67,7 @@ export class ReadAlong extends EventTarget {
     // Turning away from the narration (reading ahead, looking something up) stops
     // the page from following until "Follow the narrator" or the next chapter.
     reader.addEventListener('relocate', () => {
-      if (this.active && !this.#navigating && this.#following && !this.#onNarratedPage()) {
+      if (this.active && !this.#isOwnMove() && this.#following && !this.#onNarratedPage()) {
         this.#following = false
         this.#renderState()
       }
@@ -174,8 +175,18 @@ export class ReadAlong extends EventTarget {
     try { await this.audio.play() } catch { this.#renderState() } // iOS may need a tap; the bar shows ▶
   }
 
+  /** Did this relocation come from our own navigation? A page turn by the reader
+   *  right after one of ours lands somewhere other than where we were going. */
+  #isOwnMove() {
+    if (!this.#navigating) return false
+    if (this.#navTarget == null) return true
+    const page = this.#pageBounds()
+    return !page || (this.#navTarget >= page.from - 0.003 && this.#navTarget <= page.to + 0.003)
+  }
+
   async #goTo(target) {
     this.#navigating = true
+    this.#navTarget = null
     try { await this.reader.goTo(target) } finally { setTimeout(() => { this.#navigating = false }, 250) }
   }
 
@@ -224,6 +235,7 @@ export class ReadAlong extends EventTarget {
     if (target == null || !page) return
     if (force || target >= page.to || target < page.from - 0.002) {
       this.#navigating = true
+      this.#navTarget = target
       Promise.resolve(this.reader.goToFraction(target))
         .finally(() => setTimeout(() => { this.#navigating = false }, 400))
     }
