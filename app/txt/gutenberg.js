@@ -21,6 +21,14 @@ const MAX_SECTION_CHARS = 90_000
 const FALLBACK_SECTION_CHARS = 40_000
 const MIN_SECTION_CHARS = 300
 
+/** Illustrated editions sometimes put the chapter heading inside the caption
+ *  ("[Illustration: … \n\n Chapter I.]"). Drop the caption but keep that heading. */
+function keepTrailingHeading(caption) {
+  const paras = caption.slice(1, -1).split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+  const last = paras[paras.length - 1] ?? ''
+  return paras.length > 1 && /^(?:chapter|book|part|volume|act|stave)\s+[\w.]+\.?$/i.test(last) ? `\n\n${last}\n\n` : ''
+}
+
 /** Strip Gutenberg boilerplate and normalise whitespace. */
 export function cleanText(raw) {
   let text = raw.replace(/^﻿/, '')
@@ -31,7 +39,7 @@ export function cleanText(raw) {
   return text
     .replace(/\r\n?/g, '\n')
     // [Illustration: …] captions can span several paragraphs; drop them entirely
-    .replace(/\[Illustration(?:[:.][^\]]{0,2000})?\]/g, '')
+    .replace(/\[Illustration(?:[:.][^\]]{0,2000})?\]/g, keepTrailingHeading)
     .replace(/[ \t]+$/gm, '')
     .replace(/\n{4,}/g, '\n\n\n')
     .trim()
@@ -468,7 +476,13 @@ export function parseText(raw, meta = {}) {
     }
   })
 
-  const bodyIndex = sections.findIndex(s => s.title !== 'Front Matter')
+  // Open at the story: skip front matter, and an editor's preface or introduction
+  // when a first chapter follows soon after.
+  const FRONT = /^(?:front matter|(?:editor.s |translator.s )?(?:preface|introduction|contents|list of illustrations|note)\b)/i
+  const FIRST = /^(?:chapter|book|part|stave|volume|letter)\s+(?:1|i|one|the first)\b|^(?:1|i)\.?$/i
+  let bodyIndex = sections.findIndex(s => s.title !== 'Front Matter')
+  const first = sections.findIndex(s => FIRST.test(s.title))
+  if (first > bodyIndex && first <= bodyIndex + 4 && sections.slice(bodyIndex, first).every(s => FRONT.test(s.title))) bodyIndex = first
   return {
     bodyIndex: Math.max(0, bodyIndex),
     title: meta.title ?? header.title ?? 'Untitled',

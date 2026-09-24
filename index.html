@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!-- Privacy by construction: no third-party scripts can ever run. Books render in
        blob: iframes that inherit this policy, so scripts inside EPUBs are blocked too. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob:; img-src 'self' blob: data: https:; font-src 'self' blob: data:; media-src 'self' blob: data:; connect-src 'self' https:; frame-src 'self' blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' blob:; img-src 'self' blob: data: https:; font-src 'self' blob: data:; media-src 'self' blob: data: https:; connect-src 'self' https:; frame-src 'self' blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#FAFAF8">
   <meta name="color-scheme" content="light dark">
@@ -143,6 +143,9 @@
         <button class="icon-btn" id="auto-btn" aria-label="Autopilot: hands-free reading" title="Autopilot">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor"/></svg>
         </button>
+        <button class="icon-btn" id="audio-btn" aria-label="Listen to the audiobook" title="Listen to the audiobook" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0116 0v3M4 15a2 2 0 012-2h1v7H6a2 2 0 01-2-2zM20 15a2 2 0 00-2-2h-1v7h1a2 2 0 002-2z"/></svg>
+        </button>
         <button class="icon-btn" id="listen-btn" aria-label="Read aloud" title="Read aloud">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10zM16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
         </button>
@@ -162,6 +165,29 @@
       <button class="icon-btn" id="tts-next" aria-label="Next sentence"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l9 7-9 7z"/></svg></button>
       <button class="tts-rate" id="tts-rate" aria-label="Speaking rate">1×</button>
       <button class="icon-btn" id="tts-close" aria-label="Stop reading aloud"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <audio id="audio-el" preload="metadata"></audio>
+    <div class="audio-bar" id="audio-bar" role="region" aria-label="Audiobook controls" hidden>
+      <div class="audio-meta">
+        <span class="audio-track" id="audio-track"></span>
+        <span class="audio-time" id="audio-time">0:00 / 0:00</span>
+      </div>
+      <input type="range" id="audio-seek" min="0" max="1" step="0.001" value="0" aria-label="Position in chapter">
+      <div class="audio-buttons">
+        <button class="audio-rate tts-rate" id="audio-rate" aria-label="Playback speed">1×</button>
+        <button class="icon-btn" id="audio-prev" aria-label="Previous chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5l-9 7 9 7z"/></svg></button>
+        <button class="icon-btn" id="audio-back" aria-label="Back 15 seconds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 108-8H8M11 1L8 4l3 3"/><text x="12" y="15.5" text-anchor="middle" font-size="7" stroke="none" fill="currentColor">15</text></svg></button>
+        <button class="icon-btn audio-play" id="audio-play" aria-label="Play or pause">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="icon-btn" id="audio-fwd" aria-label="Forward 30 seconds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-8-8h4M13 1l3 3-3 3"/><text x="12" y="15.5" text-anchor="middle" font-size="7" stroke="none" fill="currentColor">30</text></svg></button>
+        <button class="icon-btn" id="audio-next" aria-label="Next chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M5 5l9 7-9 7z"/></svg></button>
+        <button class="icon-btn" id="audio-save" aria-label="Save narration for offline"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+        <button class="icon-btn" id="audio-close" aria-label="Stop listening"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <button class="audio-sync" id="audio-sync" hidden>Follow the narrator</button>
     </div>
 
     <div class="auto-ui" id="auto-ui" hidden>

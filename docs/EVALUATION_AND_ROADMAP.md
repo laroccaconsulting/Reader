@@ -199,7 +199,8 @@ Start **Phase 0** on this branch. It is small, fixes visible bugs for readers to
 | P5.1 accessibility | Done for automated checks (axe, WCAG 2.2 AA, 3 themes). A manual screen-reader pass is still recommended |
 | P5.2 i18n | Not started |
 | P5.3 backup and sync | Backup/restore done. Sync not started |
-| P5.4 performance | Startup 85 KB gzip (budget 110 KB), enforced in CI |
+| P5.4 performance | Startup ~102 KB gzip (budget 110 KB), enforced in CI; read-along loads with the first book |
+| Audiobook read-along | Done (step 1–2): 🎧 finds the book's LibriVox recording through the Internet Archive (search, metadata and MP3s allow browser access), maps tracks to chapters, follows the narration page by page (estimated by time), lock-screen controls, offline saving. Word-level sync not started |
 
 **Needs you:** deploying the optional Gutenberg relay (`relay/README.md`, about 5 minutes on a free Cloudflare account),
 and a manual pass on a real iPhone/Android (install to home screen, read aloud with system voices, share-to-app).

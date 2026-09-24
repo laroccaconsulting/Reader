@@ -32,7 +32,7 @@ const state = {
 }
 
 const sheets = {}
-let reader, rsvp, tts, highlights, autopilot, discover
+let reader, rsvp, tts, highlights, autopilot, discover, readAlong
 
 /* ======================================================================
    Library screen
@@ -468,7 +468,17 @@ function setupReaderUI() {
   rsvp = new RSVP(reader)
   tts = new ReadAloud(reader)
   autopilot = new Autopilot(reader)
-  $('#auto-btn').addEventListener('click', () => { tts.stop(); autopilot.toggle() })
+  // Audiobook read-along loads with the first book (keeps the startup payload small).
+  reader.addEventListener('open', async () => {
+    if (readAlong) return
+    const { ReadAlong } = await import('./audio/read-along.js')
+    if (readAlong) return
+    readAlong = new ReadAlong(reader)
+    readAlong.addEventListener('start', () => { tts.stop(); autopilot.stop() })
+    globalThis.readerApp.readAlong = readAlong
+    if (reader.isOpen) readAlong.lookup()
+  })
+  $('#auto-btn').addEventListener('click', () => { tts.stop(); readAlong?.stop(); autopilot.toggle() })
   autopilot.addEventListener('end', () => toast('The end. Autopilot stopped.'))
   globalThis.readerApp = { reader, autopilot, rsvp, tts } // handy for debugging and tests
   highlights = new Highlights(reader, { noteSheet: sheets.note, defineSheet: sheets.define })
@@ -482,7 +492,7 @@ function setupReaderUI() {
   })
   reader.addEventListener('tap', e => { if (highlights.popoverOpen) { e.preventDefault(); highlights.hidePopover() } })
   $('#listen-btn').hidden = !tts.supported
-  $('#listen-btn').addEventListener('click', () => { autopilot?.stop(); tts.active ? tts.stop() : tts.start(); reader.hideChrome() })
+  $('#listen-btn').addEventListener('click', () => { autopilot?.stop(); readAlong?.stop(); tts.active ? tts.stop() : tts.start(); reader.hideChrome() })
   reader.addEventListener('relocate', onRelocate)
   reader.addEventListener('bookmarks', () => { onRelocate(); if (sheets.nav.isOpen) renderMarks() })
   reader.addEventListener('doc-keydown', e => handleKey(e.detail))
@@ -494,7 +504,7 @@ function setupReaderUI() {
   $('#toc-btn').addEventListener('click', () => openNav('toc'))
   $('#bookmark-btn').addEventListener('click', () => reader.toggleBookmark())
   $('#type-btn').addEventListener('click', () => { renderTypeSheet($('#type-body')); sheets.type.open() })
-  $('#rsvp-btn').addEventListener('click', () => { tts.stop(); autopilot.stop(); rsvp.open() })
+  $('#rsvp-btn').addEventListener('click', () => { tts.stop(); autopilot.stop(); readAlong?.stop(); rsvp.open() })
   $('#search-btn').addEventListener('click', () => sheets.search.open())
 
   $('#nav-tabs').addEventListener('click', e => {
@@ -580,9 +590,9 @@ function handleKey(e) {
   else if (k === 't') openNav('toc')
   else if (k === 'b') reader.toggleBookmark()
   else if (k === 'f' || k === '/') { e.preventDefault(); sheets.search.open() }
-  else if (k === 'r') { tts.stop(); rsvp.open() }
-  else if (k === 'p') tts.active ? tts.toggle() : tts.start()
-  else if (k === 'a') { tts.stop(); autopilot.start() }
+  else if (k === 'r') { tts.stop(); readAlong?.stop(); rsvp.open() }
+  else if (k === 'p') readAlong?.active ? readAlong.toggle() : tts.active ? tts.toggle() : (readAlong?.stop(), tts.start())
+  else if (k === 'a') { tts.stop(); readAlong?.stop(); autopilot.start() }
   else if (k === 'm') reader.toggleChrome()
 }
 

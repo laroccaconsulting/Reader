@@ -29,6 +29,7 @@ export const DEFAULTS = {
   animated: true,
   wpm: 300,
   ttsRate: 1,
+  audioRate: 1,
   autoWpm: 230,
   autoCalibrate: true,
   voice: '',

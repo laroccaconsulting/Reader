@@ -218,6 +218,8 @@ export async function openBookObject(rec) {
 
 export async function removeBook(id, { keepRecord = false } = {}) {
   await db.del('files', id)
+  for (const key of await db.kvGet(`audiofiles|${id}`, [])) await db.del('files', key)
+  await db.del('kv', `audiofiles|${id}`)
   if (keepRecord) {
     const rec = await db.get('books', id)
     if (rec) await db.put('books', { ...rec, downloaded: false })

@@ -21,6 +21,7 @@ test('search and filters narrow the library', async ({ page }) => {
 
 test('opening a starter book downloads it, starts at chapter 1 and turns pages', async ({ page }) => {
   const w = watch(page)
+  await page.route('https://archive.org/advancedsearch.php?**', r => r.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, contentType: 'application/json', body: '{"response":{"docs":[]}}' }))
   await openLibrary(page)
   await openStarterBook(page, 'pg-5200') // The Metamorphosis: previously one wall of text
   await expect(page.locator('#reader-chapter')).toHaveText('I')

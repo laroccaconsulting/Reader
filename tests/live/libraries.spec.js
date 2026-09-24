@@ -41,3 +41,23 @@ test('Wiktionary definitions resolve', async ({ page }) => {
   const entries = await page.evaluate(async () => (await import('./app/reader/define.js')).define('serendipity'))
   expect(entries.length).toBeGreaterThan(0)
 })
+
+test('LibriVox via the Internet Archive: a recording is found and its chapters map onto the book', async ({ page }) => {
+  await page.goto('./')
+  const result = await page.evaluate(async () => {
+    const { findRecording } = await import('./app/audio/librivox.js')
+    const { mapTracks } = await import('./app/audio/chapters.js')
+    const rec = await findRecording({ id: 'live-pp', title: 'Pride and Prejudice', author: 'Jane Austen' }, { force: true })
+    const toc = Array.from({ length: 61 }, (_, i) => ({ label: `Chapter ${i + 1}`, href: `c${i + 1}` }))
+    const mapped = mapTracks(rec.tracks, toc)
+    const head = await fetch(rec.tracks[1].url, { headers: { Range: 'bytes=0-1023' } })
+    return { id: rec.id, tracks: rec.tracks.length, first: rec.tracks[0], mapped: mapped.slice(0, 4).map(t => [t.title, t.href]), unmapped: mapped.filter(t => !t.href).length, status: head.status, bytes: (await head.arrayBuffer()).byteLength }
+  })
+  console.log(JSON.stringify(result))
+  expect(result.tracks).toBeGreaterThan(10)
+  expect(result.first.url).toMatch(/^https:\/\/archive\.org\/download\/.+_64kb\.mp3$/)
+  expect(result.first.duration).toBeGreaterThan(60)
+  expect(result.unmapped).toBe(0)
+  expect([200, 206]).toContain(result.status)
+  expect(result.bytes).toBeGreaterThan(0)
+})
