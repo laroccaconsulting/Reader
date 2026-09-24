@@ -23,10 +23,15 @@ export const needsRelay = url => {
   try { return NO_CORS_HOSTS.has(new URL(url, location.href).host) } catch { return false }
 }
 
-export const relayConfigured = () => Boolean(settings.relayUrl)
+/* The public relay only answers the official sites; forks and local copies set their own. */
+export const PUBLIC_RELAY = 'https://relay.readfree.app'
+const OFFICIAL = new Set(['https://readfree.app', 'https://www.readfree.app', 'https://laroccaconsulting.github.io'])
+export const relayUrl = () => settings.relayUrl || (OFFICIAL.has(globalThis.location?.origin) ? PUBLIC_RELAY : '')
+
+export const relayConfigured = () => Boolean(relayUrl())
 
 export function relayed(url) {
-  const base = settings.relayUrl.replace(/\/+$/, '')
+  const base = relayUrl().replace(/\/+$/, '')
   return `${base}/?url=${encodeURIComponent(url)}`
 }
 

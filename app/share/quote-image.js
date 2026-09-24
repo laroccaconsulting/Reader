@@ -121,7 +121,7 @@ export async function drawQuote({ text, title, author, sourceLabel = '', coverCo
   }
   ctx.fillStyle = s.muted
   ctx.font = `700 ${format === 'wide' ? 18 : 22}px ${SANS}`
-  const brand = `READ IT FREE IN READER${sourceLabel ? `  ·  ${sourceLabel.toUpperCase()}` : ''}`
+  const brand = `READFREE.APP${sourceLabel ? `  ·  ${sourceLabel.toUpperCase()}` : ''}`
   ctx.fillText(truncate(ctx, brand, maxW), pad, h - pad + (format === 'wide' ? 8 : 0))
   return canvas
 }

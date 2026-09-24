@@ -1,10 +1,10 @@
-# Reader
+# Read Free
 
 A free, open-source ereader for the web that works **fully offline**, installs
 like a native app, and connects directly to the great free libraries. **No ads,
 no accounts and no tracking, ever.**
 
-**Use it:** https://laroccaconsulting.github.io/Reader/ (then *Add to Home Screen* / *Install*)
+**Use it:** https://readfree.app (then *Add to Home Screen* / *Install*)
 
 ## Features
 
@@ -53,6 +53,6 @@ to run `npm run build`.
 
 ## Licence
 
-Reader is licensed under the [GNU GPL v3 or later](LICENSE). Bundled components keep their own
+Read Free is licensed under the [GNU GPL v3 or later](LICENSE). Bundled components keep their own
 licences: foliate-js (MIT), zip.js (BSD-3-Clause), fflate (MIT), fonts (SIL OFL 1.1, see
 `fonts/`). The book texts are in the public domain in the USA.

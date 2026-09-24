@@ -1,6 +1,6 @@
 # Privacy
 
-Reader has no servers, no accounts, no analytics, no ads and no trackers.
+Read Free has no servers, no accounts, no analytics, no ads and no trackers.
 
 - **What's stored:** your books, reading progress, bookmarks and settings, only on your device
   (IndexedDB and localStorage in your browser). Nothing is uploaded anywhere.

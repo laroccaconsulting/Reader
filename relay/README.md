@@ -1,7 +1,7 @@
 # Download relay
 
 Project Gutenberg doesn't send [CORS](https://developer.mozilla.org/docs/Web/HTTP/CORS)
-headers, so browsers block web apps like Reader from downloading its books.
+headers, so browsers block web apps like Read Free from downloading its books.
 Standard Ebooks, your own files and the bundled classics work without a relay.
 
 This folder is a ~60-line [Cloudflare Worker](https://developers.cloudflare.com/workers/)
@@ -25,11 +25,11 @@ day) is far more than one reader needs.
    No computer handy? In the Cloudflare dashboard go to **Workers & Pages →
    Create → Create Worker**, paste the contents of `worker.js`, and click **Deploy**.
 
-3. In Reader, open **Settings → Downloads → Download relay**, paste the address,
+3. In Read Free, open **Settings → Downloads → Download relay**, paste the address,
    tap **Save**, then **Test**.
 
 ## Lock it to your own site (optional)
 
 Set `ALLOWED_ORIGINS` in `wrangler.toml`, for example
 `ALLOWED_ORIGINS = "https://laroccaconsulting.github.io"`, and deploy again.
-Then only your Reader site can use the relay.
+Then only your own site can use the relay.

@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Reader",
-  "short_name": "Reader",
+  "name": "Read Free",
+  "short_name": "Read Free",
   "description": "A free, open-source, fully offline ereader with direct access to public-domain libraries. No ads, no tracking, ever.",
   "start_url": "./#/library",
   "scope": "./",

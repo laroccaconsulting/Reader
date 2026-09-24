@@ -1,4 +1,4 @@
-/* Reader — application entry point.
+/* Read Free — application entry point.
  * Routes (hash): #/library  #/discover  #/settings  #/read/<id>
  */
 
@@ -272,7 +272,7 @@ async function offerStandardEdition(rec) {
 }
 
 const sourceName = s => ({
-  starter: 'Project Gutenberg (bundled with Reader)',
+  starter: 'Project Gutenberg (bundled with Read Free)',
   gutenberg: 'Project Gutenberg',
   standardebooks: 'Standard Ebooks',
   archive: 'Internet Archive',
@@ -298,7 +298,7 @@ async function importFiles(files) {
   })
 }
 
-/** Files shared to Reader from other apps arrive via the service worker's share-target handler. */
+/** Files shared to Read Free from other apps arrive via the service worker's share-target handler. */
 async function importSharedFiles() {
   if (!location.hash.includes('shared=1') || !('caches' in window)) return
   history.replaceState(null, '', '#/library')
@@ -328,7 +328,7 @@ function setupImport() {
     if (e.dataTransfer?.files?.length) importFiles(e.dataTransfer.files)
   })
 
-  // Installed PWA: "Open with Reader" (File Handling API)
+  // Installed PWA: "Open with Read Free" (File Handling API)
   if ('launchQueue' in window) {
     launchQueue.setConsumer(async params => {
       const files = await Promise.all((params.files ?? []).map(h => h.getFile()))
@@ -618,7 +618,7 @@ async function route() {
     if (a.dataset.tab === name) a.setAttribute('aria-current', 'page')
     else a.removeAttribute('aria-current')
   }
-  document.title = { library: 'Reader', discover: 'Discover · Reader', settings: 'Settings · Reader' }[name]
+  document.title = { library: 'Read Free', discover: 'Discover · Read Free', settings: 'Settings · Read Free' }[name]
   if (name === 'discover') discover.show()
   if (name === 'settings') renderSettings($('#settings-body'), { refreshLibrary, importFiles })
 }
@@ -645,7 +645,7 @@ async function openQuote(quote) {
     <blockquote class="landing-quote">${quote.text}</blockquote>
     <p class="landing-cite"><strong>${quote.title || 'A public-domain book'}</strong>${quote.author ? html`<br>${quote.author}` : ''}</p>
     <div class="detail-actions"><button class="btn primary" id="quote-get">Read it free — it’s public domain</button></div>
-    <p class="detail-source">Reader is a free, open-source ereader with no ads and no tracking. The book is downloaded straight from ${quote.ref.startsWith('se:') ? 'Standard Ebooks' : 'Project Gutenberg'} to this device and opens at this passage.</p>`)
+    <p class="detail-source">Read Free is a free, open-source ereader with no ads and no tracking. The book is downloaded straight from ${quote.ref.startsWith('se:') ? 'Standard Ebooks' : 'Project Gutenberg'} to this device and opens at this passage.</p>`)
   $('#quote-get').addEventListener('click', async e => {
     const btn = e.currentTarget
     btn.disabled = true
@@ -799,5 +799,5 @@ async function init() {
 
 init().catch(e => {
   console.error(e)
-  document.body.insertAdjacentHTML('beforeend', `<p style="padding:24px">Reader failed to start: ${esc(e.message)}</p>`)
+  document.body.insertAdjacentHTML('beforeend', `<p style="padding:24px">Read Free failed to start: ${esc(e.message)}</p>`)
 })

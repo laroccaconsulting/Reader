@@ -3,7 +3,7 @@
 import * as db from '../db.js'
 import * as library from '../library.js'
 import { settings, update, THEMES } from '../settings.js'
-import { relayed } from '../net.js'
+import { relayed, relayUrl, PUBLIC_RELAY } from '../net.js'
 import { $, html, toast, formatBytes } from './dom.js'
 import { APP_VERSION } from '../version.js'
 
@@ -40,12 +40,13 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
       <div class="card">
         <div class="row"><div class="row-main">
           <div class="row-title"><label for="relay-url">Download relay</label></div>
-          <div class="row-sub">Standard Ebooks and your own files work out of the box. Project Gutenberg blocks direct downloads from web apps, so its books need a relay: a tiny, logless, open-source server you run for free on your own Cloudflare account.
-            <a href="https://github.com/laroccaconsulting/Reader/blob/claude/offline-ereader-app-k5Pz3/relay/README.md" target="_blank" rel="noopener">Set one up in 5 minutes</a>.</div>
-          <input type="url" id="relay-url" placeholder="https://reader-relay.yourname.workers.dev" value="${settings.relayUrl}" inputmode="url" autocomplete="off" spellcheck="false">
+          <div class="row-sub">Project Gutenberg blocks direct downloads from web apps, so its books come through a relay: a tiny, logless, open-source server that only fetches from Gutenberg.
+            ${relayUrl() === PUBLIC_RELAY && !settings.relayUrl ? 'Read Free’s own relay is in use. ' : ''}You can also
+            <a href="https://github.com/laroccaconsulting/Reader/blob/claude/offline-ereader-app-k5Pz3/relay/README.md" target="_blank" rel="noopener">run your own for free</a> and enter it here.</div>
+          <input type="url" id="relay-url" placeholder="${relayUrl() || 'https://reader-relay.yourname.workers.dev'}" value="${settings.relayUrl}" inputmode="url" autocomplete="off" spellcheck="false">
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn" id="relay-save">Save</button>
-            <button class="btn ghost" id="relay-test" ${settings.relayUrl ? '' : 'disabled'}>Test</button>
+            <button class="btn ghost" id="relay-test" ${relayUrl() ? '' : 'disabled'}>Test</button>
           </div>
         </div></div>
       </div>
@@ -62,7 +63,7 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
           <div class="row-title">Protect my library</div>
           <div class="row-sub">${persisted
             ? 'Your browser will keep your books even when the device is low on space.'
-            : 'Ask the browser not to clear your books when the device is low on space. Installing Reader to your home screen helps too.'}</div>
+            : 'Ask the browser not to clear your books when the device is low on space. Installing Read Free to your home screen helps too.'}</div>
         </div>${persisted ? html`<span class="muted small">On</span>` : html`<button class="btn" id="persist">Protect</button>`}</div>
         <div class="row"><div class="row-main">
           <div class="row-title">Free up space</div>
@@ -85,7 +86,7 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
         <input type="file" id="backup-input" accept="application/json,.json" hidden></div>
         <div class="row"><div class="row-main">
           <div class="row-title">Import books</div>
-          <div class="row-sub">EPUB, TXT, FB2, MOBI, AZW3 and CBZ files. You can also drag files onto the window${'launchQueue' in window ? ', or open them with Reader from your file manager' : ''}.</div>
+          <div class="row-sub">EPUB, TXT, FB2, MOBI, AZW3 and CBZ files. You can also drag files onto the window${'launchQueue' in window ? ', or open them with Read Free from your file manager' : ''}.</div>
         </div><button class="btn" id="import-books">Choose files</button></div>
       </div>
     </section>
@@ -94,7 +95,7 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
       <h2>About</h2>
       <div class="card">
         <div class="prose">
-          <p><strong>Reader ${APP_VERSION}</strong> is free and open-source software. It has no ads, no accounts and no analytics, and it never will.</p>
+          <p><strong>Read Free ${APP_VERSION}</strong> is free and open-source software. It has no ads, no accounts and no analytics, and it never will.</p>
           <p><strong>Privacy:</strong> everything (your books, progress, bookmarks and settings) stays on this device. The app only contacts the libraries you browse and download from, directly. It has no servers of its own.</p>
           <p>Books come from <a href="https://www.gutenberg.org" target="_blank" rel="noopener">Project Gutenberg</a> and <a href="https://standardebooks.org" target="_blank" rel="noopener">Standard Ebooks</a>, both volunteer-run. Consider supporting them.</p>
           <p>Rendering by <a href="https://github.com/johnfactotum/foliate-js" target="_blank" rel="noopener">foliate-js</a> (MIT). Fonts: Literata, Atkinson Hyperlegible and OpenDyslexic (SIL OFL).
@@ -115,8 +116,8 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
     const v = $('#relay-url', root).value.trim()
     if (v && !/^https:\/\//.test(v)) { toast('The relay address must start with https://'); return }
     update({ relayUrl: v })
-    $('#relay-test', root).disabled = !v
-    toast(v ? 'Relay saved' : 'Relay removed')
+    $('#relay-test', root).disabled = !relayUrl()
+    toast(v ? 'Relay saved' : relayUrl() ? 'Using Read Free’s relay' : 'Relay removed')
   })
   $('#relay-test', root).addEventListener('click', async () => {
     try {
@@ -128,7 +129,7 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
   })
   $('#persist', root)?.addEventListener('click', async () => {
     const ok = await db.requestPersistence()
-    toast(ok ? 'Library protected' : 'Your browser declined. Installing Reader to your home screen usually allows it.')
+    toast(ok ? 'Library protected' : 'Your browser declined. Installing Read Free to your home screen usually allows it.')
     renderSettings(root, { refreshLibrary, importFiles })
   })
   $('#offload-all', root).addEventListener('click', async () => {
@@ -177,7 +178,7 @@ async function exportBackup() {
 }
 
 async function importBackup(data) {
-  if (data?.app !== 'reader' || !Array.isArray(data.books)) throw new Error('not a Reader backup')
+  if (data?.app !== 'reader' || !Array.isArray(data.books)) throw new Error('not a Read Free backup')
   let n = 0
   for (const b of data.books) {
     const existing = await db.get('books', b.id)
