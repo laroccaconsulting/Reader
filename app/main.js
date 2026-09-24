@@ -8,6 +8,7 @@ import { settings, update, applyTheme, onChange } from './settings.js'
 import { Reader, tocHtml } from './reader/reader.js'
 import { RSVP } from './reader/rsvp.js'
 import { ReadAloud } from './reader/tts.js'
+import { Highlights, COLORS } from './reader/highlights.js'
 import { renderTypeSheet } from './ui/type-sheet.js'
 import { renderSettings } from './ui/settings-screen.js'
 import { Discover } from './ui/discover.js'
@@ -24,7 +25,7 @@ const state = {
 }
 
 const sheets = {}
-let reader, rsvp, tts, discover
+let reader, rsvp, tts, highlights, discover
 
 /* ======================================================================
    Library screen
@@ -336,18 +337,32 @@ function selectNavPane(pane) {
 }
 
 function renderMarks() {
-  const marks = reader.bookmarks
-  $('#marks-list').innerHTML = marks.length
-    ? marks.map(m => str(html`
+  const items = [
+    ...reader.bookmarks.map(m => ({ ...m, kind: 'bookmark' })),
+    ...highlights.forBook().map(h => ({ ...h, kind: 'highlight' })),
+  ].sort((a, b) => (a.fraction ?? 0) - (b.fraction ?? 0))
+  const hasHighlights = items.some(i => i.kind === 'highlight')
+  $('#marks-list').innerHTML = items.length
+    ? (hasHighlights ? '<div class="marks-toolbar"><button class="btn ghost" id="export-notes">Export notes</button></div>' : '')
+      + items.map(m => str(html`
       <div class="mark">
         <button class="mark-open" data-cfi="${m.cfi}">
-          <div class="mark-label">${m.label || 'Bookmark'} · ${Math.round((m.fraction ?? 0) * 100)}%</div>
+          <div class="mark-label">${m.kind === 'highlight' ? raw(`<span class="mark-swatch" style="background:${COLORS[m.color] ?? COLORS.yellow}"></span>`) : '🔖 '}${m.label || (m.kind === 'bookmark' ? 'Bookmark' : 'Highlight')} · ${Math.round((m.fraction ?? 0) * 100)}%</div>
           <div class="mark-text">${m.text}</div>
-          <div class="mark-meta">${new Date(m.createdAt).toLocaleDateString()}</div>
+          ${m.note ? html`<div class="mark-note">${m.note}</div>` : ''}
         </button>
-        <button class="icon-btn" data-del="${m.id}" aria-label="Delete bookmark"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        ${m.kind === 'highlight' ? html`<button class="icon-btn" data-note="${m.id}" aria-label="Edit note"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>` : ''}
+        <button class="icon-btn" data-del="${m.id}" data-kind="${m.kind}" aria-label="Delete ${m.kind}"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>`)).join('')
-    : '<p class="empty"><strong>No bookmarks yet</strong>Tap the bookmark icon while reading to save your place.</p>'
+    : '<p class="empty"><strong>No notes or bookmarks yet</strong>Select text to highlight it or add a note. Tap the bookmark icon to save your place.</p>'
+  $('#export-notes')?.addEventListener('click', () => {
+    const blob = new Blob([highlights.toMarkdown()], { type: 'text/markdown' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${reader.record.title.replace(/[^\w\s-]/g, '').trim() || 'notes'} - notes.md`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000)
+  })
 }
 
 async function runBookSearch(query) {
@@ -381,6 +396,9 @@ function setupReaderUI() {
   reader = new Reader($('#reader'))
   rsvp = new RSVP(reader)
   tts = new ReadAloud(reader)
+  highlights = new Highlights(reader, { noteSheet: sheets.note })
+  highlights.addEventListener('change', () => { if (sheets.nav.isOpen) renderMarks() })
+  reader.addEventListener('tap', e => { if (highlights.popoverOpen) { e.preventDefault(); highlights.hidePopover() } })
   $('#listen-btn').hidden = !tts.supported
   $('#listen-btn').addEventListener('click', () => { tts.active ? tts.stop() : tts.start(); reader.hideChrome() })
   reader.addEventListener('relocate', onRelocate)
@@ -410,7 +428,9 @@ function setupReaderUI() {
   })
   $('#marks-list').addEventListener('click', e => {
     const del = e.target.closest('[data-del]')
-    if (del) { reader.deleteAnnotation(del.dataset.del); return }
+    if (del) { del.dataset.kind === 'highlight' ? highlights.remove(del.dataset.del) : reader.deleteAnnotation(del.dataset.del); return }
+    const note = e.target.closest('[data-note]')
+    if (note) { sheets.nav.close(); highlights.editNote(note.dataset.note); return }
     const open = e.target.closest('[data-cfi]')
     if (open) { sheets.nav.close(); reader.goTo(open.dataset.cfi); reader.hideChrome() }
   })
@@ -454,6 +474,7 @@ function handleKey(e) {
   if (rsvp?.isOpen) { if (rsvp.handleKey(e)) e.preventDefault(); return }
   if (e.key === 'Escape') {
     if (Sheet.closeTop()) { e.preventDefault(); return }
+    if (highlights?.popoverOpen) { e.preventDefault(); highlights.hidePopover(); return }
     if (reader?.isOpen) { e.preventDefault(); $('#reader-back').click() }
     return
   }
@@ -568,7 +589,7 @@ async function init() {
   applyTheme()
   onChange((_, patch) => { if ('theme' in patch) applyTheme() })
 
-  for (const id of ['nav', 'type', 'search', 'book']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  for (const id of ['nav', 'type', 'search', 'book', 'note']) sheets[id] = new Sheet($(`#sheet-${id}`))
   $('#sheet-backdrop').addEventListener('click', () => Sheet.closeTop())
 
   // Broken remote cover images fall back to the generated cover underneath.

@@ -134,7 +134,11 @@ export class Reader extends EventTarget {
     if (sel && !sel.isCollapsed) return
     const frame = doc.defaultView.frameElement
     const x = (frame?.getBoundingClientRect().left ?? 0) + e.clientX
-    this.handleTap(x)
+    // Defer so a tap on a highlight (handled by foliate's overlayer) can claim it first.
+    setTimeout(() => {
+      if (Date.now() - (this.suppressTap ?? 0) < 400) return
+      if (this.dispatchEvent(new CustomEvent('tap', { cancelable: true }))) this.handleTap(x)
+    }, 0)
   }
 
   /** Tap zones: left third = back, right third = forward, middle toggles chrome. */

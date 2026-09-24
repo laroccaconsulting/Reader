@@ -516,6 +516,30 @@ input[type="range"] { accent-color: var(--accent); width: 100%; min-height: 32px
 .tts-bar.playing .i-pause { display: block; }
 .tts-rate { min-width: 44px; height: 36px; border-radius: 10px; font-weight: 650; font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
 
+.hl-pop {
+  position: absolute; left: 0; top: 0;
+  z-index: 9;
+  display: flex; align-items: center; gap: 2px;
+  padding: 5px;
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-heavy);
+  border: 1px solid var(--border);
+}
+.hl-pop button { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-2); }
+.hl-pop button:hover { background: var(--surface); }
+.hl-pop i { width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.hl-pop [aria-pressed="true"] i { box-shadow: 0 0 0 2.5px var(--bg-elevated), 0 0 0 4.5px var(--c); }
+.hl-pop svg { width: 20px; height: 20px; }
+.hl-sep { width: 1px; height: 24px; background: var(--border); margin: 0 3px; }
+.hl-pop:not(.existing) .hl-del { display: none; }
+.note-quote { font-family: var(--book-font); font-size: 15px; line-height: 1.5; color: var(--text-2); border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; margin-bottom: 12px; max-height: 8.5em; overflow: auto; }
+#note-text { width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg); font-size: 16px; line-height: 1.5; resize: vertical; }
+#note-text:focus { outline: none; border-color: var(--accent); }
+.mark-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.mark-note { font-size: 14px; color: var(--text-2); margin-top: 6px; line-height: 1.45; white-space: pre-wrap; }
+.marks-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin: 2px 0 6px; }
+
 /* ---------- RSVP ---------- */
 .rsvp {
   position: fixed; inset: 0;

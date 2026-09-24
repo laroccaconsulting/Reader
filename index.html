@@ -160,6 +160,17 @@
     </div>
 
     <div class="reader-mini" aria-hidden="true"><span id="mini-left"></span><span id="mini-right"></span></div>
+    <div class="hl-pop" id="hl-pop" role="toolbar" aria-label="Highlight" hidden>
+      <button data-color="yellow" aria-label="Yellow highlight" aria-pressed="false"><i style="--c:#FACC15"></i></button>
+      <button data-color="green" aria-label="Green highlight" aria-pressed="false"><i style="--c:#4ADE80"></i></button>
+      <button data-color="blue" aria-label="Blue highlight" aria-pressed="false"><i style="--c:#60A5FA"></i></button>
+      <button data-color="pink" aria-label="Pink highlight" aria-pressed="false"><i style="--c:#F472B6"></i></button>
+      <span class="hl-sep"></span>
+      <button data-act="note" aria-label="Add note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>
+      <button data-act="copy" aria-label="Copy text"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg></button>
+      <button data-act="delete" class="hl-del" aria-label="Remove highlight"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+    </div>
+
     <div class="reader-loading" id="reader-loading"><div class="spinner"></div></div>
   </section>
 
@@ -171,13 +182,30 @@
     <div class="sheet-header">
       <div class="segmented small" role="tablist" id="nav-tabs">
         <button role="tab" aria-selected="true" data-pane="toc" id="nav-title">Contents</button>
-        <button role="tab" aria-selected="false" data-pane="marks">Bookmarks</button>
+        <button role="tab" aria-selected="false" data-pane="marks">Notes &amp; bookmarks</button>
       </div>
       <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="sheet-body" tabindex="-1">
       <ol class="toc" id="toc-list" data-pane="toc"></ol>
       <div id="marks-list" data-pane="marks" hidden></div>
+    </div>
+  </div>
+
+  <div class="sheet" id="sheet-note" role="dialog" aria-modal="true" aria-labelledby="note-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="note-title">Note</h2>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" tabindex="-1">
+      <blockquote class="note-quote" id="note-quote"></blockquote>
+      <label class="visually-hidden" for="note-text">Your note</label>
+      <textarea id="note-text" rows="5" placeholder="Write a note…"></textarea>
+      <div class="detail-actions" style="margin-top:12px">
+        <button class="btn primary" id="note-save">Save</button>
+        <button class="btn danger" id="note-delete">Delete highlight</button>
+      </div>
     </div>
   </div>
 
