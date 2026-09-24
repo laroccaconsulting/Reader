@@ -42,6 +42,7 @@
     </header>
 
     <div class="scroll" id="library-scroll">
+      <div class="stats-line" id="stats-line" hidden></div>
       <div id="continue-slot"></div>
       <div id="banner-slot"></div>
 
@@ -167,6 +168,7 @@
       <button data-color="pink" aria-label="Pink highlight" aria-pressed="false"><i style="--c:#F472B6"></i></button>
       <span class="hl-sep"></span>
       <button data-act="note" aria-label="Add note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg></button>
+      <button data-act="define" class="hl-define" aria-label="Define word"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 23H20M9 8h7M9 12h5"/></svg></button>
       <button data-act="copy" aria-label="Copy text"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg></button>
       <button data-act="delete" class="hl-del" aria-label="Remove highlight"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
     </div>
@@ -207,6 +209,15 @@
         <button class="btn danger" id="note-delete">Delete highlight</button>
       </div>
     </div>
+  </div>
+
+  <div class="sheet" id="sheet-define" role="dialog" aria-modal="true" aria-labelledby="define-title" aria-hidden="true" tabindex="-1">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" id="define-title">Definition</h2>
+      <button class="icon-btn sheet-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sheet-body" id="define-body" tabindex="-1" aria-live="polite"></div>
   </div>
 
   <div class="sheet" id="sheet-type" role="dialog" aria-modal="true" aria-labelledby="type-title" aria-hidden="true" tabindex="-1">

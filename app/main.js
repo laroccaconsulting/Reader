@@ -13,8 +13,10 @@ import { renderTypeSheet } from './ui/type-sheet.js'
 import { renderSettings } from './ui/settings-screen.js'
 import { Discover } from './ui/discover.js'
 import { coverHtml } from './ui/covers.js'
-import { $, $$, esc, html, raw, toast, Sheet, formatBytes, formatYear } from './ui/dom.js'
+import { $, $$, esc, html, raw, toast, Sheet, formatBytes, formatYear, formatDuration } from './ui/dom.js'
 import { registerServiceWorker } from './sw-client.js'
+import * as stats from './stats.js'
+import * as SE from './catalog/standard-ebooks.js'
 
 const state = {
   books: [],
@@ -63,6 +65,7 @@ function renderLibrary() {
 
   renderContinue()
   renderBanner()
+  renderStats()
 
   const grid = $('#book-grid')
   grid.innerHTML = filtered.map(bookCard).join('')
@@ -115,6 +118,18 @@ function renderContinue() {
         <div class="bar" aria-hidden="true"><i style="width:${p}%"></i></div>
       </div>
     </button>`)
+}
+
+async function renderStats() {
+  const el = $('#stats-line')
+  const s = await stats.summary()
+  if (!s.total) { el.hidden = true; return }
+  el.hidden = false
+  const max = Math.max(60, ...s.week.map(w => w.seconds))
+  el.innerHTML = str(html`
+    <span><strong>${formatDuration(s.today / 60)}</strong> today</span>
+    ${s.streak > 1 ? html`<span><strong>${s.streak}</strong>-day streak</span>` : ''}
+    <span class="spark" aria-hidden="true">${s.week.map(w => html`<i style="height:${Math.max(8, Math.round(w.seconds / max * 100))}%" class="${w.seconds ? 'on' : ''}"></i>`)}</span>`)
 }
 
 async function renderBanner() {
@@ -217,6 +232,38 @@ function showBookDetails(rec) {
     toast(`Removed “${rec.title}”`)
   })
   sheets.book.open()
+  if (rec.source?.type === 'starter' && navigator.onLine !== false) offerStandardEdition(rec)
+}
+
+const norm = s => (s ?? '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim()
+
+/** For bundled plain-text classics, offer the typeset Standard Ebooks edition if one exists. */
+async function offerStandardEdition(rec) {
+  try {
+    const { items } = await SE.list({ query: rec.title })
+    const match = items.find(it => norm(it.title) === norm(rec.title) && norm(it.author).includes(norm(lastName(rec.author))))
+    if (!match || !sheets.book.isOpen) return
+    const actions = $('#book-body .detail-actions')
+    const btn = document.createElement('button')
+    btn.className = 'btn'
+    btn.textContent = 'Get the Standard Ebooks edition'
+    btn.title = 'Carefully typeset EPUB with proper chapters, typography and cover. Your place is kept.'
+    actions.append(btn)
+    btn.addEventListener('click', async () => {
+      btn.disabled = true
+      btn.textContent = 'Downloading…'
+      try {
+        await library.addRemoteBook({ ...match, id: rec.id, description: rec.description, year: rec.year, genre: rec.genre })
+        toast(`Upgraded “${rec.title}” to the Standard Ebooks edition`)
+        sheets.book.close()
+        refreshLibrary()
+      } catch (e) {
+        btn.disabled = false
+        btn.textContent = 'Try again'
+        toast(`Download failed: ${e.message}`)
+      }
+    })
+  } catch { /* offline or SE unreachable: nothing to offer */ }
 }
 
 const sourceName = s => ({
@@ -285,6 +332,7 @@ async function showReader(id) {
   $('#reader-chapter').textContent = rec.author
   try {
     await reader.open(rec)
+    stats.startSession(rec.id)
   } catch (e) {
     console.error(e)
     toast(`Couldn’t open this book: ${e.message}`)
@@ -299,12 +347,14 @@ async function hideReader() {
   if (rsvp?.isOpen) await rsvp.close()
   Sheet.closeTop()
   await reader.close()
+  await stats.endSession()
   $('#reader').hidden = true
   document.body.classList.remove('reading')
   refreshLibrary()
 }
 
 function onRelocate() {
+  stats.activity()
   const loc = reader.location
   const { left, right } = reader.progressText()
   $('#reader-chapter').textContent = left || reader.record?.author || ''
@@ -396,7 +446,7 @@ function setupReaderUI() {
   reader = new Reader($('#reader'))
   rsvp = new RSVP(reader)
   tts = new ReadAloud(reader)
-  highlights = new Highlights(reader, { noteSheet: sheets.note })
+  highlights = new Highlights(reader, { noteSheet: sheets.note, defineSheet: sheets.define })
   highlights.addEventListener('change', () => { if (sheets.nav.isOpen) renderMarks() })
   reader.addEventListener('tap', e => { if (highlights.popoverOpen) { e.preventDefault(); highlights.hidePopover() } })
   $('#listen-btn').hidden = !tts.supported
@@ -589,7 +639,7 @@ async function init() {
   applyTheme()
   onChange((_, patch) => { if ('theme' in patch) applyTheme() })
 
-  for (const id of ['nav', 'type', 'search', 'book', 'note']) sheets[id] = new Sheet($(`#sheet-${id}`))
+  for (const id of ['nav', 'type', 'search', 'book', 'note', 'define']) sheets[id] = new Sheet($(`#sheet-${id}`))
   $('#sheet-backdrop').addEventListener('click', () => Sheet.closeTop())
 
   // Broken remote cover images fall back to the generated cover underneath.

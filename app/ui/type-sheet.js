@@ -6,7 +6,7 @@ import { $$, html } from './dom.js'
 const THEME_LABELS = { auto: 'Auto', light: 'Light', sepia: 'Sepia', dark: 'Dark', black: 'Black' }
 
 const radio = (name, value, label, extra = '') => html`
-  <button class="option" role="radio" data-set="${name}" data-value="${value}" aria-checked="${String(settings[name]) === String(value)}">${extra}${label}</button>`
+  <button class="option" role="radio" data-set="${name}" data-value="${value}" aria-checked="${String(String(settings[name]) === String(value))}">${extra}${label}</button>`
 
 export function renderTypeSheet(root) {
   const themeDot = t => t === 'auto'
@@ -33,7 +33,7 @@ export function renderTypeSheet(root) {
       <div class="type-label"><span>Typeface</span></div>
       <div class="options" role="radiogroup" aria-label="Typeface">
         ${Object.entries(FONTS).map(([k, f]) => html`
-          <button class="option" role="radio" data-set="font" data-value="${k}" aria-checked="${settings.font === k}"
+          <button class="option" role="radio" data-set="font" data-value="${k}" aria-checked="${String(settings.font === k)}"
             style="${f.stack ? `font-family:${f.stack}` : ''}">${f.label}</button>`)}
       </div>
     </div>
@@ -61,9 +61,9 @@ export function renderTypeSheet(root) {
     <div class="type-section">
       <div class="type-label"><span>Text</span></div>
       <div class="options">
-        <button class="option" role="switch" data-toggle="justify" aria-checked="${settings.justify}">Justify</button>
-        <button class="option" role="switch" data-toggle="hyphenate" aria-checked="${settings.hyphenate}">Hyphenate</button>
-        <button class="option" role="switch" data-toggle="animated" aria-checked="${settings.animated}">Page animation</button>
+        <button class="option" role="switch" data-toggle="justify" aria-checked="${String(settings.justify)}">Justify</button>
+        <button class="option" role="switch" data-toggle="hyphenate" aria-checked="${String(settings.hyphenate)}">Hyphenate</button>
+        <button class="option" role="switch" data-toggle="animated" aria-checked="${String(settings.animated)}">Page animation</button>
       </div>
     </div>`)
 

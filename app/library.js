@@ -86,7 +86,7 @@ export function ensureDownloaded(id, { onProgress } = {}) {
     if (rec.downloaded && await db.get('files', id)) return rec
     changed({ id, downloading: true })
     const { bytes, type } = await fetchBytes(rec.source.url, { onProgress, sameOrigin: rec.source.type === 'starter' })
-    const name = rec.source.fileName ?? rec.source.url.split('/').pop().split('?')[0]
+    const name = rec.source.fileName ?? `${rec.id.replace(/[^\w-]+/g, '_')}.${rec.format}`
     const blob = new Blob([bytes], { type: type || mimeFor(rec.format) })
     if (rec.format === 'txt') {
       const text = decodeText(bytes)

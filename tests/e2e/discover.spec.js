@@ -43,3 +43,18 @@ test('Project Gutenberg: search works; without a relay it offers alternatives', 
   await expect(page.locator('#book-body [data-act="read-starter"]')).toBeVisible()
   await expect(page.locator('#book-body [data-act="find-se"]')).toBeVisible()
 })
+
+test('bundled classic can be upgraded to the Standard Ebooks edition, keeping progress', async ({ page }) => {
+  await page.route('https://standardebooks.org/ebooks?**', r => r.fulfill({ contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<html><body><ol>
+    <li typeof="schema:Book" about="/ebooks/mary-shelley/frankenstein"><p><a href="/ebooks/mary-shelley/frankenstein"><span property="schema:name">Frankenstein</span></a></p>
+    <p class="author" typeof="schema:Person" property="schema:author"><a><span property="schema:name">Mary Shelley</span></a></p></li></ol></body></html>` }))
+  await page.route('https://standardebooks.org/ebooks/mary-shelley/frankenstein/downloads/**', r => r.fulfill({ body: fixture('sample.epub'), contentType: 'application/epub+zip', headers: { 'Access-Control-Allow-Origin': '*' } }))
+  await page.goto('./')
+  await page.locator('.book-open[data-id="pg-84"]').click({ button: 'right' })
+  const upgrade = page.locator('#book-body button', { hasText: 'Standard Ebooks edition' })
+  await expect(upgrade).toBeVisible()
+  await upgrade.click()
+  await expect(page.locator('#toast')).toContainText('Upgraded')
+  await page.locator('.book-open[data-id="pg-84"]').click()
+  await expect.poll(() => readerText(page)).toContain('bright cold day')
+})

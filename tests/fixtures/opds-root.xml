@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms/">
+  <id>urn:test:root</id><title>Test Library</title>
+  <link rel="search" type="application/atom+xml;profile=opds-catalog" href="/search?q={searchTerms}"/>
+  <entry><title>New arrivals</title><id>urn:test:new</id><content type="text">Recently added books</content>
+    <link rel="subsection" type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="/new"/></entry>
+</feed>

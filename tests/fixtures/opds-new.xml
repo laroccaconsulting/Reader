@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms/">
+  <id>urn:test:new</id><title>New arrivals</title>
+  <entry><title>A Test Voyage</title><id>urn:test:voyage</id>
+    <author><name>Ada Tester</name></author>
+    <summary>A tiny book for tests.</summary>
+    <link rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip" href="/files/voyage.epub"/>
+    <link rel="http://opds-spec.org/acquisition/buy" type="text/html" href="/buy/voyage"/>
+  </entry>
+  <entry><title>Paid Only</title><id>urn:test:paid</id>
+    <link rel="http://opds-spec.org/acquisition/buy" type="application/epub+zip" href="/buy/paid"/>
+  </entry>
+</feed>

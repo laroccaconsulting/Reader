@@ -26,7 +26,7 @@ export async function renderSettings(root, { refreshLibrary, importFiles }) {
           <div class="row-title" id="theme-title">Theme</div>
           <div class="options" role="radiogroup" aria-labelledby="theme-title" style="margin-top:10px">
             ${Object.entries(THEME_LABELS).map(([k, label]) => html`
-              <button class="option" role="radio" data-theme-opt="${k}" aria-checked="${settings.theme === k}">
+              <button class="option" role="radio" data-theme-opt="${k}" aria-checked="${String(settings.theme === k)}">
                 <span class="theme-dot" style="background:${k === 'auto' ? 'linear-gradient(135deg,#FAFAF8 50%,#18181B 50%)' : THEMES[k].bg}"></span>${label}
               </button>`)}
           </div>

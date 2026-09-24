@@ -3,7 +3,8 @@
 
 import * as db from '../db.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
-import { $, toast } from '../ui/dom.js'
+import { $, toast, html } from '../ui/dom.js'
+import { define, isSingleWord, normalizeWord } from './define.js'
 
 export const COLORS = {
   yellow: 'rgba(250, 204, 21, .38)',
@@ -20,8 +21,9 @@ export class Highlights extends EventTarget {
   #editing = null   // existing annotation being edited
   #noteSheet = null
 
-  constructor(reader, { noteSheet }) {
+  constructor(reader, { noteSheet, defineSheet }) {
     super()
+    this.defineSheet = defineSheet
     this.reader = reader
     this.pop = $('#hl-pop')
     this.#noteSheet = noteSheet
@@ -91,6 +93,8 @@ export class Highlights extends EventTarget {
     const f = frame.getBoundingClientRect()
     const first = rects[0], last = rects[rects.length - 1]
     this.pop.classList.toggle('existing', existing)
+    const text = existing ? this.#editing?.text : this.#pending?.text
+    this.pop.classList.toggle('word', Boolean(text && isSingleWord(text)))
     this.pop.querySelectorAll('[data-color]').forEach(b =>
       b.setAttribute('aria-pressed', String(existing && this.#editing?.color === b.dataset.color)))
     this.pop.hidden = false
@@ -126,6 +130,7 @@ export class Highlights extends EventTarget {
         break
       }
       case 'delete': await this.#deleteEditing(false); break
+      case 'define': this.#define(this.#editing?.text ?? this.#pending?.text ?? ''); break
     }
   }
 
@@ -158,6 +163,30 @@ export class Highlights extends EventTarget {
     if (!keepOpen) { this.hidePopover(); this.#clearSelection(); this.#editing = null }
     this.dispatchEvent(new Event('change'))
     return a
+  }
+
+  async #define(text) {
+    const word = normalizeWord(text)
+    this.hidePopover()
+    this.#clearSelection()
+    const body = $('#define-body')
+    body.innerHTML = String(html`<p class="define-word">${word}</p><div class="spinner"></div>`)
+    this.defineSheet.open()
+    try {
+      const lang = String(this.reader.book?.metadata?.language ?? 'en').slice(0, 2)
+      const entries = await define(word, lang)
+      body.innerHTML = String(html`
+        <p class="define-word">${word}</p>
+        ${entries.length ? entries.map(e => html`
+          <div class="define-entry">
+            <div class="define-pos">${e.partOfSpeech}</div>
+            <ol>${e.definitions.map(d => html`<li>${d}</li>`)}</ol>
+            ${e.examples.length ? html`<p class="define-example">“${e.examples[0]}”</p>` : ''}
+          </div>`) : html`<p class="muted">No definition found.</p>`}
+        <p class="detail-source">From <a href="https://en.wiktionary.org/wiki/${encodeURIComponent(word)}" target="_blank" rel="noopener">Wiktionary</a> (CC BY-SA). Words you look up are saved for offline use.</p>`)
+    } catch {
+      body.innerHTML = String(html`<p class="define-word">${word}</p><p class="muted">${navigator.onLine === false ? 'You’re offline. Definitions need a connection the first time you look a word up.' : 'Couldn’t reach Wiktionary.'}</p>`)
+    }
   }
 
   #openNote(a) {
