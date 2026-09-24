@@ -57,7 +57,21 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html { height: 100%; -webkit-text-size-adjust: 100%; }
+html { height: 100%; -webkit-text-size-adjust: 100%; background: var(--bg); }
+
+/* Installed on iOS the status bar text is always white (black-translucent), so give
+   light themes a dark strip behind it. Elsewhere this area has zero height. */
+@media (display-mode: standalone) {
+  :root[data-theme="light"] body::before,
+  :root[data-theme="sepia"] body::before {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: rgba(28, 26, 24, .88);
+    z-index: 200;
+    pointer-events: none;
+  }
+}
 body {
   height: 100%;
   overflow: hidden;
