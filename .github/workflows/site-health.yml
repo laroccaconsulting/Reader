@@ -1,0 +1,46 @@
+name: Site health (readfree.app)
+
+# DNS delegation, answers from the big public resolvers, and repeated fetches
+# of the site and relay. Runs on changes to this file, every 6 hours, or by hand.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 */6 * * *'
+  push:
+    paths: ['.github/workflows/site-health.yml']
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dig
+        run: sudo apt-get install -y -qq dnsutils >/dev/null
+      - name: Delegation from the .app registry
+        run: |
+          for ns in $(dig +short NS app. | head -3); do
+            echo "== $ns"; dig +norecurse +noall +authority +additional @"$ns" readfree.app NS
+          done
+      - name: Cloudflare's answer (authoritative)
+        run: |
+          NS=$(dig +short NS readfree.app @1.1.1.1 | head -1)
+          echo "authoritative: $NS"
+          dig +noall +answer @"$NS" readfree.app A; dig +noall +answer @"$NS" readfree.app AAAA
+          dig +noall +answer @"$NS" relay.readfree.app A; dig +noall +answer @"$NS" www.readfree.app A
+      - name: Public resolvers
+        run: |
+          for r in 1.1.1.1 8.8.8.8 9.9.9.9 208.67.222.222; do
+            echo "== $r: A=[$(dig +short readfree.app A @$r | tr '\n' ' ')] AAAA=[$(dig +short readfree.app AAAA @$r | tr '\n' ' ')] status=$(dig readfree.app @$r | grep -o 'status: [A-Z]*')"
+          done
+      - name: Fetch the site 30 times (IPv4 and IPv6 where available)
+        run: |
+          fails=0
+          for i in $(seq 1 30); do
+            out=$(curl -sS -o /dev/null -w '%{http_code} %{remote_ip} %{time_total}s' --max-time 15 https://readfree.app/ 2>&1) || fails=$((fails+1))
+            echo "$i: $out"
+          done
+          for ip in $(dig +short readfree.app A @1.1.1.1); do
+            echo "via $ip: $(curl -sS -o /dev/null -w '%{http_code} %{time_total}s' --max-time 15 --resolve readfree.app:443:$ip https://readfree.app/ 2>&1)"
+          done
+          echo "relay: $(curl -sS -o /dev/null -w '%{http_code}' -H 'Origin: https://readfree.app' 'https://relay.readfree.app/?url=https%3A%2F%2Fwww.gutenberg.org%2Fcache%2Fepub%2F84%2Fpg84.cover.small.jpg' 2>&1)"
+          echo "failures: $fails/30"
+          test $fails -eq 0
