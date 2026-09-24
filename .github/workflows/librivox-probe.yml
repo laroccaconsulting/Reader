@@ -1,0 +1,37 @@
+name: LibriVox probe
+
+# Informational: can the browser use LibriVox + Internet Archive audio directly?
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/librivox-probe.yml']
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe
+        run: |
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
+          O="Origin: https://laroccaconsulting.github.io"
+          hdr() { echo "=== $1"; curl -sS -m 40 -L -A "$UA" -H "$O" ${2:+-H "$2"} -o /dev/null -D - "$1" | grep -iE '^(HTTP/|access-control-allow-origin|content-type|content-length|accept-ranges|location)' || echo "request failed"; }
+          body() { echo "=== BODY $1"; curl -sS -m 40 -L -A "$UA" -H "$O" "$1" | head -c "${2:-3000}"; echo; }
+
+          hdr "https://librivox.org/api/feed/audiobooks/?title=%5Epride%20and%20prejudice&format=json"
+          body "https://librivox.org/api/feed/audiobooks/?title=%5Epride%20and%20prejudice&format=json&extended=1" 5000
+          ID=$(curl -sS -A "$UA" "https://librivox.org/api/feed/audiobooks/?title=%5Epride%20and%20prejudice&format=json" | python3 -c "import sys,json;print(json.load(sys.stdin)['books'][0]['id'])")
+          echo "LibriVox id: $ID"
+          body "https://librivox.org/api/feed/audiotracks/?project_id=$ID&format=json" 2500
+          hdr "https://librivox.org/api/feed/audiotracks/?project_id=$ID&format=json"
+
+          IA=$(curl -sS -A "$UA" "https://librivox.org/api/feed/audiobooks/?id=$ID&format=json&extended=1" | python3 -c "import sys,json;b=json.load(sys.stdin)['books'][0];print(b.get('url_iarchive',''))")
+          echo "IA page: $IA"
+          IAID=$(basename "$IA")
+          body "https://archive.org/metadata/$IAID/files" 1500
+          MP3=$(curl -sS "https://archive.org/metadata/$IAID" | python3 -c "import sys,json;fs=json.load(sys.stdin)['files'];print([f['name'] for f in fs if f['name'].endswith('_64kb.mp3')][0])")
+          echo "mp3: $MP3"
+          hdr "https://archive.org/download/$IAID/$MP3"
+          hdr "https://archive.org/download/$IAID/$MP3" "Range: bytes=0-1023"
+          hdr "https://archive.org/metadata/$IAID"
+          # Gutenberg also hosts some human-read and computer-generated audio
+          hdr "https://www.gutenberg.org/ebooks/search.opds/?query=pride+and+prejudice+audio"
