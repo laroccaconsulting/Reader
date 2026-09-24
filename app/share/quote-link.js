@@ -1,6 +1,7 @@
 /* Shareable quote links.
  *
- *   <app>#/q/<book-ref>?t=<quote>&p=<prefix>&s=<suffix>&b=<title>&a=<author>&c=<cfi>
+ *   https://readfree.app/q/<book-ref>?t=<quote>&p=<prefix>&s=<suffix>&b=<title>&a=<author>&c=<cfi>
+ *   <app>#/q/<book-ref>?…   (copies of the app on other sites, and older links)
  *
  * The link names the *book*, not a file: `pg84` (Project Gutenberg #84) or
  * `se:mary-shelley/frankenstein` (Standard Ebooks). The quote is found by its
@@ -52,7 +53,14 @@ export function rangeContext(range) {
   }
 }
 
-export function buildLink({ ref, text, prefix, suffix, title, author, cfi }, base = appBase()) {
+/* On the official sites, links go to readfree.app/q/… so link previews (iMessage,
+ * WhatsApp, Slack, X…) can show the quote card: the server only sees the path,
+ * never what follows '#'. Copies of the app elsewhere keep links to themselves. */
+export const SHARE_SITE = 'https://readfree.app/'
+const OFFICIAL = new Set(['https://readfree.app', 'https://www.readfree.app', 'https://laroccaconsulting.github.io'])
+export const shareBase = (origin = location.origin) => OFFICIAL.has(origin) ? SHARE_SITE : null
+
+export function buildLink({ ref, text, prefix, suffix, title, author, cfi }, base = shareBase() ?? appBase()) {
   const q = new URLSearchParams()
   q.set('t', text.replace(/…$/, ''))
   if (prefix) q.set('p', prefix)
@@ -60,7 +68,8 @@ export function buildLink({ ref, text, prefix, suffix, title, author, cfi }, bas
   if (title) q.set('b', title)
   if (author) q.set('a', author)
   if (cfi) q.set('c', cfi)
-  return `${base}#/q/${encodeURIComponent(ref)}?${q.toString()}`
+  const path = `q/${encodeURIComponent(ref)}?${q.toString()}`
+  return base === SHARE_SITE ? `${base}${path}` : `${base}#/${path}`
 }
 
 export function parseLink(hash) {

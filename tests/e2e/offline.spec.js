@@ -35,3 +35,15 @@ test('files shared from other apps (Web Share Target) are imported', async ({ pa
   await expect(page.locator('.book-open[aria-label^="A Test Voyage"]')).toBeVisible()
   await expect(page).toHaveURL(/#\/library$/)
 })
+
+test('readfree.app/q/… quote links open straight in the installed app, even offline', async ({ page, context }) => {
+  await openLibrary(page)
+  await page.evaluate(async () => { await navigator.serviceWorker.ready })
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
+  await page.waitForTimeout(500)
+  await context.setOffline(true)
+  await page.goto('./q/pg1342?t=It%20is%20a%20truth%20universally%20acknowledged&b=Pride%20and%20Prejudice&a=Jane%20Austen')
+  await expect(page.locator('.landing-quote')).toHaveText('It is a truth universally acknowledged')
+  await expect(page.locator('.landing-cite')).toContainText('Pride and Prejudice')
+  await context.setOffline(false)
+})

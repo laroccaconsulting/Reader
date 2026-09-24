@@ -27,7 +27,14 @@ Limitation until step 2: link previews in iMessage, WhatsApp, Slack or X show th
 not the quote. Link previews are built by bots that don't run JavaScript, and everything after
 `#` never reaches a server.
 
-## Step 2 (needs a domain + one Cloudflare Worker)
+## Step 2: link previews (shipped on readfree.app)
+
+Links made on readfree.app (or the github.io copy) are `https://readfree.app/q/<ref>?t=…`.
+`site/worker.js` answers `/q/*` with the preview page below and `/img/*.png` with the card
+(satori + resvg, cached at Cloudflare's edge); all other files are served as static assets without
+running any code. Installed apps open `/q/` links offline through the service worker.
+
+### Original plan
 
 One stateless Worker on the domain, deployed alongside the Gutenberg relay:
 

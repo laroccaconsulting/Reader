@@ -1,14 +1,23 @@
 # The app itself, served from Cloudflare at https://readfree.app.
-# Static files only (no Worker code runs), so requests cost nothing.
+# Static files are served directly (free, no Worker code runs). worker.js only
+# runs for shared-quote links and their preview images (run_worker_first).
 # Deployed by .github/workflows/deploy-site.yml from the published branch.
 name = "readfree"
+main = "worker.js"
 compatibility_date = "2025-06-01"
 workers_dev = true
 routes = [{ pattern = "readfree.app", custom_domain = true }]
 
 [assets]
 directory = "../dist"
+binding = "ASSETS"
 not_found_handling = "none"
+run_worker_first = ["/q/*", "/img/*", "/oembed"]
+
+[[rules]]
+type = "Data"
+globs = ["**/*.woff"]
+fallthrough = true
 
 [observability]
 enabled = false

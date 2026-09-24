@@ -28,13 +28,13 @@ jobs:
           node-version: 22
       - name: Check generated files and collect the site
         if: steps.creds.outputs.ok == 'true'
-        run: node scripts/build.mjs --check && node scripts/dist.mjs
+        run: node scripts/build.mjs --check && node scripts/dist.mjs && npm ci --prefix site --no-audit --no-fund
       - uses: cloudflare/wrangler-action@v3
         if: steps.creds.outputs.ok == 'true'
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: '4'
+          wranglerVersion: '4.138.0'
           workingDirectory: site
       - name: Smoke test
         if: steps.creds.outputs.ok == 'true'
@@ -44,3 +44,11 @@ jobs:
             sleep 10
           done
           echo "readfree.app did not serve the app yet (a new custom domain can take a few minutes)"; exit 1
+      - name: Smoke test link previews
+        if: steps.creds.outputs.ok == 'true'
+        run: |
+          q='t=It%20is%20a%20truth%20universally%20acknowledged&b=Pride%20and%20Prejudice&a=Jane%20Austen'
+          curl -fsS "https://readfree.app/q/pg1342?$q" | grep -q 'property="og:image" content="https://readfree.app/img/pg1342.png'
+          type=$(curl -fsS -o /tmp/card.png -w '%{content_type}' "https://readfree.app/img/pg1342.png?$q&v=${GITHUB_SHA}")
+          echo "card: $type, $(wc -c < /tmp/card.png) bytes"
+          test "$type" = image/png && test $(wc -c < /tmp/card.png) -gt 10000
