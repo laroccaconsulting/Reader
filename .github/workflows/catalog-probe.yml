@@ -1,33 +1,25 @@
-name: Catalog probe
+name: Live library check
 
-# Informational: checks CORS headers of free-library endpoints and dumps
-# response samples used to build/verify the catalog parsers.
+# Runs the real Standard Ebooks / Project Gutenberg / Wiktionary integrations
+# in a browser daily, so upstream changes that would break Discover are caught.
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * *'
   push:
-    paths: ['.github/workflows/catalog-probe.yml']
+    paths: ['app/catalog/**', 'app/reader/define.js', 'tests/live/**']
 
 jobs:
-  probe:
+  live:
     runs-on: ubuntu-latest
     steps:
-      - name: Dump samples
-        run: |
-          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
-          dump() {
-            echo "::group::$1"
-            curl -sS -m 30 -L -A "$UA" -H "Origin: https://laroccaconsulting.github.io" -D /tmp/h -o /tmp/b "$1" || true
-            grep -iE '^(HTTP/|access-control|content-type|location)' /tmp/h
-            echo "--- body (${2:-6000} bytes) ---"
-            head -c "${2:-6000}" /tmp/b; echo
-            echo "::endgroup::"
-          }
-          dump "https://en.wiktionary.org/api/rest_v1/page/definition/serendipity" 1500
-          dump "https://en.wiktionary.org/w/api.php?action=query&format=json&origin=*&prop=extracts&titles=serendipity&explaintext=1" 800
-          ID=$(curl -sS "https://archive.org/advancedsearch.php?q=title%3A%28pride+and+prejudice%29+AND+mediatype%3Atexts+AND+format%3AEPUB&fl%5B%5D=identifier&rows=1&output=json" | python3 -c "import sys,json;print(json.load(sys.stdin)['response']['docs'][0]['identifier'])")
-          echo "IA id: $ID"
-          FILE=$(curl -sS "https://archive.org/metadata/$ID" | python3 -c "import sys,json;print([f['name'] for f in json.load(sys.stdin)['files'] if f['name'].endswith('.epub')][0])")
-          echo "IA file: $FILE"
-          dump "https://archive.org/download/$ID/$FILE" 200
-          dump "https://archive.org/services/img/$ID" 100
-          dump "https://archive.org/advancedsearch.php?q=title%3A%28pride+and+prejudice%29+AND+mediatype%3Atexts+AND+format%3AEPUB&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&fl%5B%5D=licenseurl&fl%5B%5D=rights&rows=5&output=json" 2500
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:live
+        env:
+          CI: 'true'

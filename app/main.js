@@ -293,6 +293,21 @@ async function importFiles(files) {
   })
 }
 
+/** Files shared to Reader from other apps arrive via the service worker's share-target handler. */
+async function importSharedFiles() {
+  if (!location.hash.includes('shared=1') || !('caches' in window)) return
+  history.replaceState(null, '', '#/library')
+  const cache = await caches.open('reader-share')
+  const files = []
+  for (const req of await cache.keys()) {
+    const res = await cache.match(req)
+    const name = decodeURIComponent(res.headers.get('X-File-Name') ?? 'book')
+    files.push(new File([await res.blob()], name, { type: res.headers.get('Content-Type') ?? '' }))
+    await cache.delete(req)
+  }
+  if (files.length) importFiles(files)
+}
+
 function setupImport() {
   $('#import-btn').addEventListener('click', () => $('#file-input').click())
   $('#file-input').addEventListener('change', e => { importFiles(e.target.files); e.target.value = '' })
@@ -666,6 +681,7 @@ async function init() {
   addEventListener('popstate', route)
   await route()
 
+  importSharedFiles()
   registerServiceWorker()
   if (state.books.some(b => b.downloaded)) db.requestPersistence()
 }

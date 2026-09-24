@@ -11,7 +11,9 @@
     "serve": "python3 -m http.server 8080",
     "test": "node --test tests/unit/*.test.mjs",
     "test:e2e": "playwright test",
-    "corpus": "node tests/unit/corpus-report.mjs"
+    "corpus": "node tests/unit/corpus-report.mjs",
+    "budget": "node scripts/budget.mjs",
+    "test:live": "playwright test --config playwright.live.config.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

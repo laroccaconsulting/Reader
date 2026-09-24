@@ -11,13 +11,17 @@ self.addEventListener('install', event => {
     await cache.addAll(PRECACHE.map(url => new Request(url, { cache: 'reload' })))
   })())
   // First install activates immediately; updates wait for the user to accept (see sw-client.js).
-  if (!self.registration.active) self.skipWaiting()
+  // The legacy 1.x worker ("reader-vN" caches) has no update prompt, so replace it right away.
+  event.waitUntil((async () => {
+    const legacy = (await caches.keys()).some(k => /^reader-v\d+$/.test(k))
+    if (!self.registration.active || legacy) await self.skipWaiting()
+  })())
 })
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys()
-    await Promise.all(keys.filter(k => k.startsWith('reader-') && k !== CACHE).map(k => caches.delete(k)))
+    await Promise.all(keys.filter(k => k.startsWith('reader-') && k !== CACHE && k !== 'reader-share').map(k => caches.delete(k)))
     await self.clients.claim()
   })())
 })
@@ -28,8 +32,24 @@ self.addEventListener('message', event => {
 
 self.addEventListener('fetch', event => {
   const { request } = event
-  if (request.method !== 'GET') return
   const url = new URL(request.url)
+
+  // Web Share Target (Android): stash shared files, then let the app import them.
+  if (request.method === 'POST' && url.pathname.endsWith('/share-target')) {
+    event.respondWith((async () => {
+      const form = await request.formData()
+      const cache = await caches.open('reader-share')
+      for (const file of form.getAll('books')) {
+        if (!(file instanceof File)) continue
+        await cache.put(`./shared/${Date.now()}-${encodeURIComponent(file.name)}`,
+          new Response(file, { headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) } }))
+      }
+      return Response.redirect('./#/library?shared=1', 303)
+    })())
+    return
+  }
+
+  if (request.method !== 'GET') return
   if (url.origin !== self.location.origin) return // libraries are fetched directly by the app
 
   // App navigations always get the cached shell (the app routes with #hash).

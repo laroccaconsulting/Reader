@@ -16,6 +16,8 @@ jobs:
       - run: npm ci
       - name: Generated files are up to date
         run: npm run check
+      - name: Performance budget
+        run: npm run budget
       - name: Unit tests (parser over the whole starter shelf)
         run: npm test
       - name: Install Chromium
