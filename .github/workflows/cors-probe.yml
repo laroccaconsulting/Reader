@@ -1,0 +1,40 @@
+name: CORS probe
+
+# Checks which free-library endpoints can be fetched directly from a browser
+# (i.e. send Access-Control-Allow-Origin). Informational only.
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/cors-probe.yml']
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe endpoints
+        run: |
+          probe() {
+            echo "=== $1"
+            curl -sS -m 30 -L -o /dev/null -D - -H "Origin: https://laroccaconsulting.github.io" "$1" \
+              | grep -iE '^(HTTP/|access-control-allow-origin|location|content-type)' || echo "request failed"
+          }
+          probe "https://gutendex.com/books/?search=dickens"
+          probe "https://gutendex.com/books/?ids=84"
+          probe "https://www.gutenberg.org/cache/epub/84/pg84.txt"
+          probe "https://www.gutenberg.org/cache/epub/84/pg84-images-3.epub"
+          probe "https://www.gutenberg.org/ebooks/84.epub3.images"
+          probe "https://www.gutenberg.org/cache/epub/84/pg84.cover.medium.jpg"
+          probe "https://www.gutenberg.org/ebooks.opds/"
+          probe "https://www.gutenberg.org/ebooks/search.opds/?query=dickens"
+          probe "https://standardebooks.org/feeds/opds"
+          probe "https://standardebooks.org/feeds/opds/all"
+          probe "https://standardebooks.org/ebooks?query=dickens"
+          probe "https://standardebooks.org/ebooks/mary-shelley/frankenstein/downloads/mary-shelley_frankenstein.epub?source=download"
+          probe "https://standardebooks.org/ebooks/mary-shelley/frankenstein/downloads/cover-thumbnail.jpg"
+          probe "https://archive.org/advancedsearch.php?q=frankenstein&fl%5B%5D=identifier&rows=1&output=json"
+          probe "https://archive.org/metadata/frankensteinorth00shel"
+          probe "https://openlibrary.org/search.json?q=frankenstein&limit=1"
+          probe "https://covers.openlibrary.org/b/id/12345-M.jpg"
+          probe "https://en.wikisource.org/w/api.php?action=query&format=json&origin=*&titles=Frankenstein"
+          probe "https://ws-export.wmcloud.org/?lang=en&page=Frankenstein,_or_the_Modern_Prometheus_(Revised_Edition,_1831)&format=epub"
+          probe "https://catalog.feedbooks.com/catalog/public_domain.atom"
